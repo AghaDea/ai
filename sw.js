@@ -14,19 +14,21 @@ self.addEventListener("notificationclick", event => {
     event.waitUntil((async () => {
         const url = event.notification.data?.url;
 
-        const windows = await self.clients.matchAll({
+        if (!url) return;
+
+        const clients = await self.clients.matchAll({
             type: "window",
             includeUncontrolled: true
         });
 
-        for (const client of windows) {
+        for (const client of clients) {
             if (client.url === url && "focus" in client) {
                 await client.focus();
                 return;
             }
         }
 
-        if (url && self.clients.openWindow) {
+        if (self.clients.openWindow) {
             await self.clients.openWindow(url);
         }
     })());
