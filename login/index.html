@@ -1,1 +1,155 @@
-login
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Guessino · ورود</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="../Config/load-config.js"></script>
+</head>
+<body>
+<div class="auth-wrap">
+  <div class="auth-card">
+    <div class="logo">Guess<span>ino</span></div>
+    <div class="sub" id="authSub">وارد حساب خود شوید</div>
+    <div id="authError" class="err hidden"></div>
+
+    <div class="field">
+      <label>نام کاربری</label>
+      <input id="username" maxlength="16" placeholder="۲ تا ۱۶ کاراکتر" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>رمز عبور</label>
+      <input id="password" type="password" maxlength="64" placeholder="حداقل ۴ کاراکتر" autocomplete="current-password">
+    </div>
+
+    <button id="submitBtn" class="btn primary">ورود</button>
+    <div class="switch">
+      حساب نداری؟ <a id="switchLink">ثبت‌نام</a>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  let mode = 'login'; // or 'signup'
+  let SUPABASE_URL = '', SUPABASE_ANON_KEY = '', sb = null;
+
+  const $ = id => document.getElementById(id);
+
+  async function init() {
+    try {
+      const cfg = await loadGzConfig();
+      SUPABASE_URL = cfg.SUPABASE_URL;
+      SUPABASE_ANON_KEY = cfg.SUPABASE_ANON_KEY;
+    } catch(e) {}
+
+    // Check maintenance
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      try {
+        const r = await fetch(SUPABASE_URL + '/rest/v1/rpc/site_update_normalize', {
+          method: 'POST',
+          headers: { 'apikey': SUPABASE_ANON_KEY, 'Authorization': 'Bearer ' + SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+          body: '{}'
+        });
+        if (r.ok) {
+          const d = await r.json();
+          if (d && d.ok && d.active) {
+            location.replace('../update/');
+            return;
+          }
+        }
+      } catch(e){}
+    }
+
+    // Already logged in?
+    if (localStorage.getItem('gz_user_id') && localStorage.getItem('gz_session_ok')) {
+      location.replace('../app/');
+      return;
+    }
+
+    // Load supabase
+    await new Promise(resolve => {
+      const s = document.createElement('script');
+      s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+      s.onload = resolve; s.onerror = resolve;
+      document.head.appendChild(s);
+    });
+    if (typeof supabase !== 'undefined') {
+      sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: { persistSession: false }
+      });
+    }
+  }
+
+  function setMode(m) {
+    mode = m;
+    $('authSub').textContent = m === 'login' ? 'وارد حساب خود شوید' : 'یک حساب جدید بسازید';
+    $('submitBtn').textContent = m === 'login' ? 'ورود' : 'ثبت‌نام';
+    $('switchLink').textContent = m === 'login' ? 'ثبت‌نام' : 'ورود';
+    $('authError').classList.add('hidden');
+  }
+
+  $('switchLink').onclick = () => setMode(mode === 'login' ? 'signup' : 'login');
+
+  $('submitBtn').onclick = async () => {
+    const username = ($('username').value || '').trim();
+    const password = $('password').value || '';
+    const err = $('authError');
+    err.classList.add('hidden');
+
+    if (username.length < 2 || username.length > 16) {
+      err.textContent = 'نام کاربری باید بین ۲ تا ۱۶ کاراکتر باشد';
+      err.classList.remove('hidden'); return;
+    }
+    if (password.length < 4) {
+      err.textContent = 'رمز عبور حداقل ۴ کاراکتر';
+      err.classList.remove('hidden'); return;
+    }
+    if (!sb) {
+      err.textContent = 'اتصال به سرور برقرار نشد';
+      err.classList.remove('hidden'); return;
+    }
+
+    $('submitBtn').disabled = true;
+    try {
+      // Device id
+      let deviceId = localStorage.getItem('gz_device_id') || ('d' + Math.random().toString(36).slice(2));
+      localStorage.setItem('gz_device_id', deviceId);
+
+      const rpc = mode === 'signup' ? 'register_user' : 'login_user';
+      const { data, error } = await sb.rpc(rpc, {
+        p_username: username,
+        p_password: password,
+        p_device_id: deviceId
+      });
+
+      if (error) throw new Error(error.message || 'خطای سرور');
+      if (!data || !data.ok) {
+        if (data?.reason === 'username_taken') throw new Error('این نام کاربری قبلاً گرفته شده');
+        if (data?.reason === 'banned') throw new Error('حساب شما مسدود است');
+        throw new Error(mode === 'login' ? 'نام کاربری یا رمز اشتباه است' : 'ثبت‌نام ناموفق');
+      }
+
+      localStorage.setItem('gz_user_id', data.user.id);
+      localStorage.setItem('gz_session_ok', '1');
+      localStorage.setItem('gz_user_cache', JSON.stringify(data.user));
+      location.replace('../app/');
+    } catch (e) {
+      err.textContent = e.message || 'خطا';
+      err.classList.remove('hidden');
+    } finally {
+      $('submitBtn').disabled = false;
+    }
+  };
+
+  // Enter key
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter') $('submitBtn').click();
+  });
+
+  init();
+})();
+</script>
+</body>
+</html>
