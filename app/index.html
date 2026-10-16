@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>Guessino | بازی حدس عدد</title>
+<link rel="stylesheet" href="css/style.css">
+<script src="../Config/load-config.js"></script>
+</head>
+<body>
+<div id="app">
+
+  <!-- Loading -->
+  <div id="loadingScreen" class="screen loading-screen">
+    <div class="logo">Guess<span>ino</span></div>
+    <div class="spinner"></div>
+    <div id="loadingText" class="loading-text">در حال اتصال...</div>
+    <div id="loadingError" class="error-box hidden">
+      <p id="loadingErrorMsg"></p>
+      <button id="loadingRetryBtn" class="btn primary">تلاش مجدد</button>
+    </div>
+  </div>
+
+  <!-- Ban Screen -->
+  <div id="banScreen" class="screen ban-screen hidden">
+    <div class="ban-card">
+      <div class="ban-icon">🚫</div>
+      <h2>دسترسی محدود شده</h2>
+      <p id="banReasonText">حساب یا دستگاه شما توسط ادمین مسدود شده است.</p>
+      <div class="ban-meta">
+        <div>نوع: <b id="banTypeText">-</b></div>
+        <div>تا: <b id="banUntilText">-</b></div>
+      </div>
+      <button id="banLogoutBtn" class="btn ghost">خروج</button>
+    </div>
+  </div>
+
+  <!-- Main App -->
+  <div id="mainApp" class="hidden">
+    <!-- Top Bar -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="dot"></span>
+        Guess<span>ino</span>
+      </div>
+      <div class="top-actions">
+        <button id="notifBtn" class="icon-btn" title="اعلان‌ها">🔔<span id="notifBadge" class="badge hidden">0</span></button>
+        <button id="profileBtn" class="user-chip">
+          <div id="topAvatar" class="avatar sm"></div>
+          <span id="topUsername">...</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- Screens -->
+    <main id="mainContent">
+
+      <!-- ===== GAME SCREEN (completely redesigned) ===== -->
+      <section id="gameScreen" class="screen-panel active">
+        <div class="game-header">
+          <div class="mode-selector" id="modeSelector">
+            <button class="mode-chip active" data-mode="classic">کلاسیک</button>
+            <button class="mode-chip" data-mode="blitz">بلیتز ⚡</button>
+            <button class="mode-chip" data-mode="precision">دقت 🎯</button>
+            <button class="mode-chip" data-mode="survival">بقا 🔥</button>
+            <button class="mode-chip" data-mode="ranked">رنکد 🏆</button>
+          </div>
+          <div class="range-label" id="rangeLabel">۱۰٬۰۰۰ – ۵۰۰٬۰۰۰</div>
+        </div>
+
+        <!-- Stats bar -->
+        <div class="stats-bar">
+          <div class="stat">
+            <span class="stat-label">لول</span>
+            <span class="stat-value" id="statLevel">1</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">استریک</span>
+            <span class="stat-value" id="statStreak">0 🔥</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">سکه</span>
+            <span class="stat-value gold" id="statCoins">100</span>
+          </div>
+          <div class="stat">
+            <span class="stat-label">XP</span>
+            <div class="xp-mini">
+              <div class="xp-fill" id="xpFill" style="width:0%"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="game-arena" id="gameArena">
+          <div class="target-display">
+            <div class="guess-count" id="guessCount">حدس ۰</div>
+            <div class="big-number" id="currentGuessDisplay">؟</div>
+            <div class="result-feedback" id="resultFeedback"></div>
+          </div>
+
+          <!-- History -->
+          <div class="guess-history" id="guessHistory"></div>
+
+          <!-- Numpad -->
+          <div class="numpad" id="numpad">
+            <button data-n="1">1</button><button data-n="2">2</button><button data-n="3">3</button>
+            <button data-n="4">4</button><button data-n="5">5</button><button data-n="6">6</button>
+            <button data-n="7">7</button><button data-n="8">8</button><button data-n="9">9</button>
+            <button data-n="clear" class="action">C</button>
+            <button data-n="0">0</button>
+            <button data-n="del" class="action">⌫</button>
+          </div>
+
+          <button id="submitGuessBtn" class="btn primary big submit-btn" disabled>ثبت حدس</button>
+
+          <!-- Power-ups -->
+          <div class="powerups" id="powerups">
+            <button class="power-btn" data-power="hint" title="راهنمایی (۳۰ سکه)">💡 <span>۳۰</span></button>
+            <button class="power-btn" data-power="range" title="محدود کردن بازه (۵۰ سکه)">📐 <span>۵۰</span></button>
+            <button class="power-btn" data-power="skip" title="رد کردن راند (۸۰ سکه)">⏭️ <span>۸۰</span></button>
+          </div>
+        </div>
+
+        <!-- Win Overlay -->
+        <div id="winOverlay" class="win-overlay hidden">
+          <div class="win-content">
+            <div class="win-title">🎉 بردی!</div>
+            <div class="win-target" id="winTarget">عدد: ۰</div>
+            <div class="win-stats">
+              <div><b id="winGuesses">0</b><span>حدس</span></div>
+              <div><b id="winXp">+0</b><span>XP</span></div>
+              <div><b id="winCoins">+0</b><span>سکه</span></div>
+            </div>
+            <button id="nextRoundBtn" class="btn primary">راند بعدی</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===== LEADERBOARD ===== -->
+      <section id="leaderScreen" class="screen-panel">
+        <div class="section-title">لیدربورد</div>
+        <div class="tabs">
+          <button class="tab active" data-lb="weekly">هفتگی</button>
+          <button class="tab" data-lb="alltime">همه زمان‌ها</button>
+          <button class="tab" data-lb="ranked">رنکد</button>
+        </div>
+        <div id="leaderList" class="leader-list"></div>
+      </section>
+
+      <!-- ===== SOCIAL / CLANS ===== -->
+      <section id="socialScreen" class="screen-panel">
+        <div class="section-title">اجتماعی</div>
+        <div class="tabs">
+          <button class="tab active" data-social="chat">چت عمومی</button>
+          <button class="tab" data-social="clans">کلن‌ها</button>
+        </div>
+        <div id="chatBox" class="chat-box">
+          <div id="chatMessages" class="chat-messages"></div>
+          <div class="chat-input-row">
+            <input id="chatInput" maxlength="200" placeholder="پیام بنویس...">
+            <button id="chatSendBtn" class="btn primary sm">ارسال</button>
+          </div>
+        </div>
+        <div id="clansBox" class="clans-box hidden">
+          <div id="myClan" class="my-clan hidden"></div>
+          <div id="clanList" class="clan-list"></div>
+          <button id="createClanBtn" class="btn primary">ساخت کلن جدید</button>
+        </div>
+      </section>
+
+      <!-- ===== PROFILE ===== -->
+      <section id="profileScreen" class="screen-panel">
+        <div class="profile-header">
+          <div id="profileAvatar" class="avatar lg"></div>
+          <div class="profile-info">
+            <h2 id="profileName">...</h2>
+            <div class="profile-title" id="profileTitle">Newbie</div>
+            <div class="profile-stats-row">
+              <span>لول <b id="pLevel">1</b></span>
+              <span>برد <b id="pWins">0</b></span>
+              <span>تاج <b id="pCrowns">0</b></span>
+            </div>
+          </div>
+        </div>
+        <div class="profile-actions">
+          <button id="editProfileBtn" class="btn ghost">ویرایش پروفایل</button>
+          <button id="inventoryBtn" class="btn ghost">اینونتوری</button>
+          <button id="logoutBtn" class="btn danger">خروج</button>
+        </div>
+        <div class="achievements" id="achievementsList"></div>
+      </section>
+
+      <!-- ===== ADMIN (only for staff) ===== -->
+      <section id="adminScreen" class="screen-panel">
+        <div class="section-title">پنل ادمین</div>
+        <div class="admin-grid">
+          <button class="admin-card" data-admin="players">بازیکنان</button>
+          <button class="admin-card" data-admin="bans">بن‌ها</button>
+          <button class="admin-card" data-admin="tickets">تیکت‌ها</button>
+          <button class="admin-card" data-admin="reports">ریپورت‌ها</button>
+          <button class="admin-card" data-admin="announce">اعلان‌ها</button>
+          <button class="admin-card" data-admin="audit">لاگ اقدامات</button>
+          <button class="admin-card" data-admin="weekly">ریست هفتگی</button>
+          <button class="admin-card" data-admin="maintenance">تعمیرات</button>
+        </div>
+        <div id="adminContent" class="admin-content"></div>
+      </section>
+
+    </main>
+
+    <!-- Bottom Tab Bar -->
+    <nav class="tabbar">
+      <button class="tab-btn active" data-screen="gameScreen">
+        <span class="ic">🎮</span>
+        <span>بازی</span>
+      </button>
+      <button class="tab-btn" data-screen="leaderScreen">
+        <span class="ic">🏆</span>
+        <span>رتبه</span>
+      </button>
+      <button class="tab-btn" data-screen="socialScreen">
+        <span class="ic">💬</span>
+        <span>اجتماعی</span>
+      </button>
+      <button class="tab-btn" data-screen="profileScreen">
+        <span class="ic">👤</span>
+        <span>پروفایل</span>
+      </button>
+      <button class="tab-btn hidden" id="adminTabBtn" data-screen="adminScreen">
+        <span class="ic">🛡️</span>
+        <span>ادمین</span>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<script src="js/script.js"></script>
+</body>
+</html>
