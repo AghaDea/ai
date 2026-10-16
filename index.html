@@ -1,18 +1,10 @@
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Guessino</title>
-<style>
-  body{margin:0;background:#05070a;color:#e8eef7;font-family:system-ui,sans-serif;display:grid;place-items:center;min-height:100vh;min-height:100dvh}
-  .boot{text-align:center}
-  .logo{font-size:28px;font-weight:800;letter-spacing:-.5px}
-  .logo span{color:#3b82f6}
-  .spin{width:36px;height:36px;border:3px solid #1e293b;border-top-color:#3b82f6;border-radius:50%;margin:24px auto;animation:s .8s linear infinite}
-  @keyframes s{to{transform:rotate(360deg)}}
-  .txt{font-size:13px;color:#64748b}
-</style>
+<body style="margin:0; background:#000; color:#fff;">
 <script src="Config/load-config.js"></script>
 <script>
 (function () {
@@ -44,19 +36,27 @@
     } catch (e) {}
     if (URL && KEY) {
       try {
-        var r = await fetch(URL + '/rest/v1/rpc/site_update_normalize', {
-          method: 'POST',
-          headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
-          body: '{}'
-        });
-        if (r.ok) {
-          var data = await r.json();
-          if (data && data.ok && data.active) { go('update/'); return; }
+        var data = null;
+        try {
+          var r = await fetch(URL + '/rest/v1/rpc/site_update_normalize', {
+            method: 'POST',
+            headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY, 'Content-Type': 'application/json' },
+            body: '{}'
+          });
+          if (r.ok) data = await r.json();
+        } catch (e) {}
+        if (data && data.ok && data.active) { go('update/'); return; }
+        if (!data || !data.ok) {
+          var r2 = await fetch(URL + '/rest/v1/site_update?id=eq.1&select=enabled,ends_at&limit=1', {
+            headers: { 'apikey': KEY, 'Authorization': 'Bearer ' + KEY }
+          });
+          var rows = r2.ok ? await r2.json() : [];
+          if (active(rows && rows[0])) { go('update/'); return; }
         }
       } catch (e) {}
     }
     try {
-      if (localStorage.getItem('gz_user_id') && localStorage.getItem('gz_session_ok')) go('app/');
+      if (localStorage.getItem('gz_user_id')) go('app/');
       else go('login/');
     } catch (e) { go('login/'); }
   }
@@ -64,11 +64,5 @@
 })();
 </script>
 </head>
-<body>
-  <div class="boot">
-    <div class="logo">Guess<span>ino</span></div>
-    <div class="spin"></div>
-    <div class="txt">در حال بارگذاری...</div>
-  </div>
-</body>
+<body></body>
 </html>
