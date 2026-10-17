@@ -62,7 +62,7 @@ async function loadProjects() {
   if (loading) loading.classList.remove('hidden');
   if (container) container.innerHTML = '';
 
-  const { data: projects, error } = await supabase
+  const { data: projects, error } = await supabaseClient
     .from('projects')
     .select('*')
     .eq('user_id', currentUser.id)
@@ -146,7 +146,7 @@ function createProjectCard(project) {
     const confirmed = confirm(`مطمئنی می‌خوای پروژه «${project.name}» رو برای همیشه حذف کنی؟\nاین کار قابل برگشت نیست.`);
     if (!confirmed) return;
 
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('projects')
       .delete()
       .eq('id', project.id);
@@ -185,7 +185,7 @@ async function createNewProject() {
   submitBtn.textContent = 'دارم می‌سازم...';
 
   // ساخت پروژه
-  const { data: project, error } = await supabase
+  const { data: project, error } = await supabaseClient
     .from('projects')
     .insert({
       user_id: currentUser.id,
@@ -253,7 +253,7 @@ document.addEventListener('DOMContentLoaded', () => {
   ];
 
   for (const file of filesToCreate) {
-    await supabase.from('files').insert({
+    await supabaseClient.from('files').insert({
       project_id: project.id,
       name: file.name,
       content: file.content,

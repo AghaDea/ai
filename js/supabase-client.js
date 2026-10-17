@@ -1,7 +1,7 @@
 // کلاینت مرکزی Supabase
 // این فایل رو در همه صفحه‌ها لود می‌کنیم
 
-let supabase = null;
+let supabaseClient = null;
 
 function initSupabase() {
   if (typeof window.supabase === 'undefined') {
@@ -14,16 +14,16 @@ function initSupabase() {
     return null;
   }
 
-  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  return supabase;
+  supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  return supabaseClient;
 }
 
 // گرفتن کاربر فعلی
 async function getCurrentUser() {
-  if (!supabase) initSupabase();
-  if (!supabase) return null;
+  if (!supabaseClient) initSupabase();
+  if (!supabaseClient) return null;
 
-  const { data: { user }, error } = await supabase.auth.getUser();
+  const { data: { user }, error } = await supabaseClient.auth.getUser();
   if (error) {
     console.error('خطا در گرفتن کاربر:', error.message);
     return null;
@@ -33,8 +33,8 @@ async function getCurrentUser() {
 
 // خروج از حساب
 async function signOut() {
-  if (!supabase) initSupabase();
-  const { error } = await supabase.auth.signOut();
+  if (!supabaseClient) initSupabase();
+  const { error } = await supabaseClient.auth.signOut();
   if (error) {
     console.error('خطا در خروج:', error.message);
     return false;

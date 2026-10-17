@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       showMessage('دارم وارد می‌شم... یه لحظه صبر کن.', 'info');
 
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
         password
       });
@@ -84,7 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       showMessage('دارم حسابت رو می‌سازم...', 'info');
 
-      const { data, error } = await supabase.auth.signUp({
+      const { data, error } = await supabaseClient.auth.signUp({
         email,
         password
       });

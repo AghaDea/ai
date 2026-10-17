@@ -55,7 +55,7 @@ async function loadProject() {
   showStatus('دارم پروژه رو لود می‌کنم...');
 
   // اطلاعات پروژه
-  const { data: project, error: projError } = await supabase
+  const { data: project, error: projError } = await supabaseClient
     .from('projects')
     .select('*')
     .eq('id', projectId)
@@ -71,7 +71,7 @@ async function loadProject() {
   document.getElementById('project-title').textContent = project.name;
 
   // فایل‌ها
-  const { data: projectFiles, error: filesError } = await supabase
+  const { data: projectFiles, error: filesError } = await supabaseClient
     .from('files')
     .select('*')
     .eq('project_id', projectId)
@@ -272,7 +272,7 @@ async function saveAllFiles(showToastMsg = false) {
   let hasError = false;
 
   for (const file of files) {
-    const { error } = await supabase
+    const { error } = await supabaseClient
       .from('files')
       .update({
         content: file.content,
@@ -287,7 +287,7 @@ async function saveAllFiles(showToastMsg = false) {
   }
 
   // آپدیت زمان پروژه
-  await supabase
+  await supabaseClient
     .from('projects')
     .update({ updated_at: new Date().toISOString() })
     .eq('id', projectId);
@@ -415,7 +415,7 @@ async function handleAddFile(e) {
     defaultContent = `// فایل اسکریپت جدید\nconsole.log('لود شد');\n`;
   }
 
-  const { data: newFile, error } = await supabase
+  const { data: newFile, error } = await supabaseClient
     .from('files')
     .insert({
       project_id: projectId,
@@ -452,7 +452,7 @@ async function renameFile(file) {
     return;
   }
 
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from('files')
     .update({ name: trimmed })
     .eq('id', file.id);
@@ -477,7 +477,7 @@ async function deleteFile(file) {
 
   if (!confirm(`مطمئنی می‌خوای «${file.name}» رو حذف کنی؟`)) return;
 
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from('files')
     .delete()
     .eq('id', file.id);
@@ -531,7 +531,7 @@ async function handleFileUpload(e) {
                      file.name.endsWith('.js') ? 'js' :
                      file.name.endsWith('.html') ? 'html' : 'other';
 
-    const { data: newFile, error } = await supabase
+    const { data: newFile, error } = await supabaseClient
       .from('files')
       .insert({
         project_id: projectId,
