@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>یادگیری HTML — HTML Studio</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/learn.css">
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+</head>
+<body>
+  <header class="dashboard-header">
+    <div class="logo">HTML Studio</div>
+    <div class="header-right">
+      <a href="dashboard.html" class="btn btn-secondary btn-sm">پروژه‌های من</a>
+      <button class="btn btn-secondary btn-sm" id="logout-btn">خروج</button>
+    </div>
+  </header>
+
+  <div class="learn-layout">
+    <!-- منوی درس‌ها -->
+    <aside class="learn-sidebar">
+      <h3>مسیر یادگیری</h3>
+      <nav id="lesson-nav">
+        <button class="lesson-item active" data-lesson="1">۱. مقدمه و ساختار پایه</button>
+        <button class="lesson-item" data-lesson="2">۲. تگ‌های متنی</button>
+        <button class="lesson-item" data-lesson="3">۳. لینک و تصویر</button>
+        <button class="lesson-item" data-lesson="4">۴. لیست‌ها</button>
+        <button class="lesson-item" data-lesson="5">۵. تگ‌های معنایی</button>
+        <button class="lesson-item" data-lesson="6">۶. جداول</button>
+        <button class="lesson-item" data-lesson="7">۷. فرم‌ها</button>
+        <button class="lesson-item" data-lesson="8">۸. مقدمه CSS</button>
+        <button class="lesson-item" data-lesson="9">۹. رنگ، فونت و فاصله</button>
+        <button class="lesson-item" data-lesson="10">۱۰. Flexbox ساده</button>
+      </nav>
+    </aside>
+
+    <!-- محتوای درس -->
+    <main class="learn-content" id="lesson-content">
+      <!-- محتوا با جاوااسکریپت لود می‌شه -->
+    </main>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/learn.js"></script>
+</body>
+</html>
