@@ -328,3 +328,9 @@
     font-size: 0.95rem;
   }
 }
+
+.editor-page, .editor-body, .main-workspace {
+  overflow-x: hidden;
+  max-width: 100vw;
+}
+
