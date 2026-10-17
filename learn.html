@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>یادگیری HTML — HTML Studio</title>
+  <title>یادگیری — HTML Studio</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="css/learn.css">
   <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
@@ -17,27 +17,56 @@
     </div>
   </header>
 
-  <div class="learn-layout">
-    <!-- منوی درس‌ها -->
+  <!-- انتخاب مسیر یادگیری -->
+  <div class="track-selector" id="track-selector">
+    <div class="track-container">
+      <h1>کدوم مسیر رو می‌خوای بری؟</h1>
+      <p class="track-subtitle">دو تا مسیر کامل و جدا از هم برات آماده کردم. هر کدوم رو که خواستی انتخاب کن.</p>
+      
+      <div class="track-cards">
+        <button class="track-card" id="track-visual">
+          <div class="track-icon">🎨</div>
+          <h2>مسیر ظاهر</h2>
+          <p>HTML + CSS کامل</p>
+          <ul>
+            <li>ساختار HTML از صفر تا صد</li>
+            <li>همه تگ‌های مهم</li>
+            <li>CSS کامل (رنگ، فونت، Flexbox، Grid)</li>
+            <li>ریسپانسیو و انیمیشن</li>
+            <li>تمرین‌های عملی زیاد</li>
+          </ul>
+          <span class="track-btn">شروع مسیر ظاهر ←</span>
+        </button>
+
+        <button class="track-card" id="track-script">
+          <div class="track-icon">⚡</div>
+          <h2>مسیر اسکریپت</h2>
+          <p>JavaScript کامل</p>
+          <ul>
+            <li>مفاهیم پایه جاوااسکریپت</li>
+            <li>کار با DOM و رویدادها</li>
+            <li>آرایه، آبجکت، توابع</li>
+            <li>Async و Fetch</li>
+            <li>پروژه‌های تعاملی</li>
+          </ul>
+          <span class="track-btn">شروع مسیر اسکریپت ←</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- صفحه اصلی یادگیری (بعد از انتخاب مسیر) -->
+  <div class="learn-layout hidden" id="learn-layout">
     <aside class="learn-sidebar">
-      <h3>مسیر یادگیری</h3>
-      <nav id="lesson-nav">
-        <button class="lesson-item active" data-lesson="1">۱. مقدمه و ساختار پایه</button>
-        <button class="lesson-item" data-lesson="2">۲. تگ‌های متنی</button>
-        <button class="lesson-item" data-lesson="3">۳. لینک و تصویر</button>
-        <button class="lesson-item" data-lesson="4">۴. لیست‌ها</button>
-        <button class="lesson-item" data-lesson="5">۵. تگ‌های معنایی</button>
-        <button class="lesson-item" data-lesson="6">۶. جداول</button>
-        <button class="lesson-item" data-lesson="7">۷. فرم‌ها</button>
-        <button class="lesson-item" data-lesson="8">۸. مقدمه CSS</button>
-        <button class="lesson-item" data-lesson="9">۹. رنگ، فونت و فاصله</button>
-        <button class="lesson-item" data-lesson="10">۱۰. Flexbox ساده</button>
-      </nav>
+      <div class="sidebar-top">
+        <button class="btn-back-tracks" id="back-to-tracks">→ تغییر مسیر</button>
+        <h3 id="current-track-title">مسیر ظاهر</h3>
+      </div>
+      <nav id="lesson-nav"></nav>
     </aside>
 
-    <!-- محتوای درس -->
     <main class="learn-content" id="lesson-content">
-      <!-- محتوا با جاوااسکریپت لود می‌شه -->
+      <!-- محتوا اینجا لود می‌شه -->
     </main>
   </div>
 
