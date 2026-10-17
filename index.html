@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HTML Studio — یادگیری و ساخت پروژه HTML</title>
+  <link rel="stylesheet" href="css/main.css">
+  <!-- فونت فارسی زیبا -->
+  <link href="https://cdn.jsdelivr.net/gh/rastikerdar/vazirmatn@v33.003/Vazirmatn-font-face.css" rel="stylesheet">
+</head>
+<body>
+  <div class="auth-page">
+    <div class="auth-container">
+      <div class="auth-logo">
+        <h1>HTML Studio</h1>
+        <p>جایی که HTML رو از صفر تا صد یاد می‌گیری و پروژه واقعی می‌سازی</p>
+      </div>
+
+      <div class="auth-card">
+        <div class="auth-tabs">
+          <button type="button" class="auth-tab active" id="tab-login">ورود</button>
+          <button type="button" class="auth-tab" id="tab-register">ثبت‌نام</button>
+        </div>
+
+        <!-- فرم ورود -->
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">ایمیل</label>
+            <input type="email" id="login-email" placeholder="مثلاً name@email.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="login-password">رمز عبور</label>
+            <input type="password" id="login-password" placeholder="رمز عبورت" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary">وارد شو</button>
+        </form>
+
+        <!-- فرم ثبت‌نام -->
+        <form id="register-form" class="hidden">
+          <div class="form-group">
+            <label for="register-email">ایمیل</label>
+            <input type="email" id="register-email" placeholder="مثلاً name@email.com" required autocomplete="email">
+          </div>
+          <div class="form-group">
+            <label for="register-password">رمز عبور</label>
+            <input type="password" id="register-password" placeholder="حداقل ۶ کاراکتر" required autocomplete="new-password">
+          </div>
+          <div class="form-group">
+            <label for="register-password2">تکرار رمز عبور</label>
+            <input type="password" id="register-password2" placeholder="دوباره رمز رو بنویس" required autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary">حساب بساز</button>
+        </form>
+
+        <div id="auth-message" class="auth-message hidden"></div>
+      </div>
+
+      <p style="text-align:center; margin-top:24px; color:var(--text-muted); font-size:0.85rem;">
+        با ساخت حساب، پروژه‌هات روی سرور ذخیره می‌شن و هر وقت برگشتی همه‌چیز سر جاشه.
+      </p>
+    </div>
+  </div>
+
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/config.js"></script>
+  <script src="js/supabase-client.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
