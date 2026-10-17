@@ -1,4 +1,4 @@
-// منطق ورود و ثبت‌نام
+// منطق ورود و ثبت‌نام با نام کاربری (بدون ایمیل واقعی)
 
 document.addEventListener('DOMContentLoaded', () => {
   initSupabase();
@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const registerForm = document.getElementById('register-form');
   const loginTab = document.getElementById('tab-login');
   const registerTab = document.getElementById('tab-register');
-  const messageBox = document.getElementById('auth-message');
 
   // سوییچ بین تب‌ها
   if (loginTab && registerTab) {
@@ -32,15 +31,23 @@ document.addEventListener('DOMContentLoaded', () => {
   if (loginForm) {
     loginForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('login-email').value.trim();
+      const username = document.getElementById('login-username').value.trim().toLowerCase();
       const password = document.getElementById('login-password').value;
 
-      if (!email || !password) {
-        showMessage('لطفاً ایمیل و رمز عبور رو کامل وارد کن.', 'error');
+      if (!username || !password) {
+        showMessage('لطفاً نام کاربری و رمز عبور رو کامل وارد کن.', 'error');
+        return;
+      }
+
+      if (!isValidUsername(username)) {
+        showMessage('نام کاربری فقط می‌تونه شامل حروف انگلیسی، عدد و _ باشه.', 'error');
         return;
       }
 
       showMessage('دارم وارد می‌شم... یه لحظه صبر کن.', 'info');
+
+      // تبدیل نام کاربری به ایمیل داخلی
+      const email = usernameToEmail(username);
 
       const { data, error } = await supabaseClient.auth.signInWithPassword({
         email,
@@ -63,12 +70,17 @@ document.addEventListener('DOMContentLoaded', () => {
   if (registerForm) {
     registerForm.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const email = document.getElementById('register-email').value.trim();
+      const username = document.getElementById('register-username').value.trim().toLowerCase();
       const password = document.getElementById('register-password').value;
       const password2 = document.getElementById('register-password2').value;
 
-      if (!email || !password) {
-        showMessage('ایمیل و رمز عبور رو وارد کن لطفاً.', 'error');
+      if (!username || !password) {
+        showMessage('نام کاربری و رمز عبور رو وارد کن لطفاً.', 'error');
+        return;
+      }
+
+      if (!isValidUsername(username)) {
+        showMessage('نام کاربری فقط می‌تونه شامل حروف انگلیسی، عدد و آندرلاین (_) باشه و حداقل ۳ کاراکتر.', 'error');
         return;
       }
 
@@ -84,24 +96,40 @@ document.addEventListener('DOMContentLoaded', () => {
 
       showMessage('دارم حسابت رو می‌سازم...', 'info');
 
+      const email = usernameToEmail(username);
+
       const { data, error } = await supabaseClient.auth.signUp({
         email,
-        password
+        password,
+        options: {
+          data: {
+            username: username,
+            display_name: username
+          }
+        }
       });
 
       if (error) {
+        console.error('SignUp error:', error);
         showMessage(translateError(error.message), 'error');
         return;
       }
 
-      // در بعضی تنظیمات Supabase نیاز به تأیید ایمیل هست
-      if (data.user && !data.session) {
-        showMessage('حساب ساخته شد! یه ایمیل تأیید برات فرستادم. بعد از تأیید می‌تونی وارد شی.', 'success');
-      } else {
+      // اگر تأیید ایمیل خاموش باشه، مستقیم session می‌ده
+      if (data.user && data.session) {
         showMessage('حسابت آماده شد! خوش اومدی 🎉', 'success');
         setTimeout(() => {
           window.location.href = 'dashboard.html';
-        }, 1000);
+        }, 900);
+      } else if (data.user) {
+        // ممکنه تأیید ایمیل روشن باشه
+        showMessage('حساب ساخته شد! اگر صفحه ورود نیومد، از تب ورود وارد شو.', 'success');
+        setTimeout(() => {
+          // سعی کن لاگین کنه
+          loginAfterRegister(email, password);
+        }, 1200);
+      } else {
+        showMessage('مشکلی پیش اومد. دوباره امتحان کن.', 'error');
       }
     });
   }
@@ -110,11 +138,29 @@ document.addEventListener('DOMContentLoaded', () => {
   checkIfAlreadyLoggedIn();
 });
 
+async function loginAfterRegister(email, password) {
+  const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
+  if (!error) {
+    window.location.href = 'dashboard.html';
+  }
+}
+
 async function checkIfAlreadyLoggedIn() {
   const user = await getCurrentUser();
   if (user) {
     window.location.href = 'dashboard.html';
   }
+}
+
+// تبدیل نام کاربری به ایمیل ساختگی (Supabase فقط با ایمیل کار می‌کنه)
+function usernameToEmail(username) {
+  return `${username}@htmlstudio.local`;
+}
+
+// اعتبارسنجی نام کاربری
+function isValidUsername(username) {
+  // فقط حروف انگلیسی، عدد و آندرلاین، حداقل ۳ کاراکتر
+  return /^[a-z0-9_]{3,30}$/.test(username);
 }
 
 function showMessage(text, type = 'info') {
@@ -135,11 +181,21 @@ function clearMessage() {
 
 function translateError(msg) {
   const map = {
-    'Invalid login credentials': 'ایمیل یا رمز عبور اشتباهه.',
-    'Email not confirmed': 'اول باید ایمیلت رو تأیید کنی.',
-    'User already registered': 'این ایمیل قبلاً ثبت شده. برو تب ورود.',
+    'Invalid login credentials': 'نام کاربری یا رمز عبور اشتباهه.',
+    'Email not confirmed': 'حساب هنوز فعال نشده. با پشتیبانی در میون بذار.',
+    'User already registered': 'این نام کاربری قبلاً ثبت شده. یکی دیگه انتخاب کن یا برو تب ورود.',
     'Password should be at least 6 characters': 'رمز عبور خیلی کوتاهه (حداقل ۶ کاراکتر).',
-    'Unable to validate email address: invalid format': 'فرمت ایمیل درست نیست.'
+    'Unable to validate email address: invalid format': 'نام کاربری معتبر نیست.',
+    'Database error saving new user': 'خطای دیتابیس موقع ساخت حساب. احتمالاً تأیید ایمیل روشنه یا کلید API مشکل داره. برو تنظیمات Supabase رو چک کن (پایین صفحه راهنما هست).',
+    'Signups not allowed for this instance': 'ثبت‌نام در این پروژه غیرفعال شده.',
+    'Email rate limit exceeded': 'خیلی سریع تلاش کردی. چند دقیقه صبر کن.'
   };
-  return map[msg] || msg;
+
+  // اگر پیام دقیق نبود، سعی کن شباهت پیدا کنی
+  for (const key in map) {
+    if (msg.includes(key) || msg.toLowerCase().includes(key.toLowerCase())) {
+      return map[key];
+    }
+  }
+  return msg;
 }

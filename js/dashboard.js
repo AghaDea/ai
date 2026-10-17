@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   // نمایش ایمیل کاربر
   const userEmailEl = document.getElementById('user-email');
   if (userEmailEl) {
-    userEmailEl.textContent = currentUser.email;
+    userEmailEl.textContent = currentUser.user_metadata?.username || currentUser.email?.split("@")[0] || "کاربر";
   }
 
   // دکمه خروج
