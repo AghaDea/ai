@@ -1,0 +1,330 @@
+/* ============================================
+   استایل مخصوص صفحه ادیتور
+   ============================================ */
+
+.editor-page {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* هدر ادیتور */
+.editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  gap: 12px;
+}
+
+.editor-header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.editor-header-left h1 {
+  font-size: 1.05rem;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.editor-header-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+#save-status {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: 8px;
+}
+
+#save-status.dirty {
+  color: var(--warning);
+}
+
+/* بدنه اصلی: سه بخش */
+.editor-body {
+  flex: 1;
+  display: flex;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* سایدبار فایل‌ها */
+.sidebar {
+  width: 220px;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.sidebar-header {
+  padding: 12px 14px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebar-header h3 {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.sidebar-actions {
+  display: flex;
+  gap: 4px;
+}
+
+.btn-tiny {
+  background: transparent;
+  color: var(--text-muted);
+  padding: 4px 6px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.btn-tiny:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+#file-list {
+  list-style: none;
+  overflow-y: auto;
+  flex: 1;
+  padding: 8px;
+}
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.15s;
+}
+
+.file-item:hover {
+  background: var(--bg-hover);
+}
+
+.file-item.active {
+  background: rgba(59, 130, 246, 0.18);
+  color: #93c5fd;
+}
+
+.file-icon {
+  flex-shrink: 0;
+}
+
+.file-name {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-item-actions {
+  display: none;
+  gap: 2px;
+}
+
+.file-item:hover .file-item-actions {
+  display: flex;
+}
+
+.empty-files {
+  padding: 20px 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+/* ناحیه ادیتور + پیش‌نمایش */
+.main-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+/* تب‌ها */
+.editor-tabs {
+  display: flex;
+  background: var(--bg-dark);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+
+.editor-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  border-left: 1px solid var(--border);
+  cursor: pointer;
+  white-space: nowrap;
+  background: transparent;
+  transition: all 0.15s;
+}
+
+.editor-tab:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.editor-tab.active {
+  background: var(--bg-card);
+  color: var(--text);
+  border-bottom: 2px solid var(--primary);
+}
+
+.tab-close {
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0 2px;
+  border-radius: 3px;
+  opacity: 0.6;
+}
+
+.tab-close:hover {
+  opacity: 1;
+  color: var(--danger);
+}
+
+/* اسپلیت ادیتور و پیش‌نمایش */
+.workspace-split {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.editor-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border-left: 1px solid var(--border);
+}
+
+#editor-wrapper {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+#editor-wrapper .CodeMirror {
+  height: 100%;
+  font-size: 14px;
+  font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Consolas, monospace;
+  direction: ltr;
+  text-align: left;
+}
+
+.no-file {
+  padding: 40px;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.preview-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  background: #fff;
+}
+
+.preview-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.preview-toolbar span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+#preview-frame {
+  flex: 1;
+  width: 100%;
+  border: none;
+  background: white;
+}
+
+/* نوار وضعیت پایین */
+.status-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background: var(--bg-card);
+  border-top: 1px solid var(--border);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.status-bar.error {
+  color: var(--danger);
+}
+
+/* ریسپانسیو برای موبایل */
+@media (max-width: 900px) {
+  .sidebar {
+    width: 180px;
+  }
+  
+  .workspace-split {
+    flex-direction: column;
+  }
+  
+  .editor-pane {
+    border-left: none;
+    border-bottom: 1px solid var(--border);
+    height: 50%;
+  }
+  
+  .preview-pane {
+    height: 50%;
+  }
+}
+
+@media (max-width: 600px) {
+  .sidebar {
+    display: none; /* در موبایل می‌تونی بعداً منوی همبرگری اضافه کنی */
+  }
+  
+  .editor-header-left h1 {
+    font-size: 0.95rem;
+  }
+  }
