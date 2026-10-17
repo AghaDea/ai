@@ -1,0 +1,152 @@
+/* استایل صفحه یادگیری */
+
+.learn-layout {
+  display: flex;
+  min-height: calc(100vh - 60px);
+}
+
+.learn-sidebar {
+  width: 260px;
+  background: var(--bg-card);
+  border-left: 1px solid var(--border);
+  padding: 20px 0;
+  flex-shrink: 0;
+  overflow-y: auto;
+}
+
+.learn-sidebar h3 {
+  padding: 0 18px 14px;
+  font-size: 0.95rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.lesson-item {
+  display: block;
+  width: 100%;
+  text-align: right;
+  padding: 11px 18px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  border: none;
+  border-right: 3px solid transparent;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+
+.lesson-item:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+
+.lesson-item.active {
+  background: rgba(59, 130, 246, 0.12);
+  color: #93c5fd;
+  border-right-color: var(--primary);
+  font-weight: 500;
+}
+
+.learn-content {
+  flex: 1;
+  padding: 32px 40px;
+  max-width: 860px;
+  overflow-y: auto;
+}
+
+.learn-content h1 {
+  font-size: 1.7rem;
+  margin-bottom: 8px;
+}
+
+.learn-content .lesson-desc {
+  color: var(--text-muted);
+  margin-bottom: 28px;
+  font-size: 1.05rem;
+}
+
+.learn-content h2 {
+  font-size: 1.25rem;
+  margin: 28px 0 12px;
+  color: #93c5fd;
+}
+
+.learn-content p {
+  margin-bottom: 14px;
+  line-height: 1.75;
+}
+
+.learn-content ul, .learn-content ol {
+  margin: 12px 0 18px 0;
+  padding-right: 22px;
+}
+
+.learn-content li {
+  margin-bottom: 6px;
+}
+
+.code-block {
+  background: #1a1f2e;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin: 16px 0;
+  overflow-x: auto;
+  direction: ltr;
+  text-align: left;
+  font-family: 'Fira Code', Consolas, monospace;
+  font-size: 0.88rem;
+  line-height: 1.6;
+  color: #e2e8f0;
+}
+
+.code-block .tag { color: #f97583; }
+.code-block .attr { color: #79b8ff; }
+.code-block .val { color: #9ecbff; }
+.code-block .comment { color: #6a737d; }
+
+.try-box {
+  background: rgba(16, 185, 129, 0.08);
+  border: 1px solid rgba(16, 185, 129, 0.25);
+  border-radius: 10px;
+  padding: 16px 18px;
+  margin: 20px 0;
+}
+
+.try-box h4 {
+  color: #6ee7b7;
+  margin-bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.tip-box {
+  background: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin: 18px 0;
+  font-size: 0.95rem;
+}
+
+.nav-lessons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+@media (max-width: 768px) {
+  .learn-layout {
+    flex-direction: column;
+  }
+  .learn-sidebar {
+    width: 100%;
+    border-left: none;
+    border-bottom: 1px solid var(--border);
+    max-height: 200px;
+  }
+  .learn-content {
+    padding: 20px 16px;
+  }
+}
