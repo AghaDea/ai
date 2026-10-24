@@ -574,8 +574,9 @@
             <div class="progress-text" id="progressText">۰٪</div>
           </div>
           <p class="hint" style="margin-top:10px">
-            فایل: Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf ≈ ۱۲٫۷ مگابایت<br>
-            موتور: wllama (llama.cpp WASM)
+            فایل محلی: models/Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf ≈ ۱۲٫۷ مگابایت<br>
+            موتور: wllama (llama.cpp WASM)<br>
+            اولویت: فایل محلی پروژه → سپس Hugging Face
           </p>
         </div>
 
@@ -622,7 +623,10 @@
 
     const MODEL_REPO = 'tiiuae/Falcon-H1-Tiny-90M-Instruct-GGUF';
     const MODEL_FILE = 'Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf';
-    const MODEL_URL = `https://huggingface.co/${MODEL_REPO}/resolve/main/${MODEL_FILE}`;
+    // مدل داخل پروژه (پوشه models/) — اولویت اول
+    const LOCAL_MODEL_URL = './models/Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf';
+    // پشتیبان: دانلود از Hugging Face
+    const HF_MODEL_URL = `https://huggingface.co/${MODEL_REPO}/resolve/main/${MODEL_FILE}`;
     const STORAGE_KEY = 'nova_chat_history_v1';
     const SETTINGS_KEY = 'nova_settings_v1';
 
@@ -753,7 +757,7 @@
       setStatus('loading', 'آماده‌سازی موتور...');
       progressWrap.classList.add('visible');
       progressFill.style.width = '0%';
-      progressText.textContent = 'شروع دانلود...';
+      progressText.textContent = 'شروع بارگذاری...';
 
       try {
         wllama = new Wllama(WasmFromCDN);
@@ -765,21 +769,40 @@
             const mbLoaded = (loaded / (1024 * 1024)).toFixed(1);
             const mbTotal = (total / (1024 * 1024)).toFixed(1);
             progressText.textContent = `${pct}% · ${mbLoaded} / ${mbTotal} مگابایت`;
-            setStatus('loading', `دانلود مدل... ${pct}%`);
+            setStatus('loading', `بارگذاری مدل... ${pct}%`);
           } else {
-            progressText.textContent = `دانلود... ${(loaded / (1024 * 1024)).toFixed(1)} مگابایت`;
+            progressText.textContent = `بارگذاری... ${(loaded / (1024 * 1024)).toFixed(1)} مگابایت`;
           }
         };
 
-        setStatus('loading', 'دانلود مدل از Hugging Face...');
-        await wllama.loadModelFromHF(
-          { repo: MODEL_REPO, file: MODEL_FILE },
-          {
-            progressCallback,
-            n_ctx: 2048,
-            n_threads: navigator.hardwareConcurrency ? Math.min(4, navigator.hardwareConcurrency) : 2,
+        const loadOpts = {
+          progressCallback,
+          n_ctx: 2048,
+          n_threads: navigator.hardwareConcurrency ? Math.min(4, navigator.hardwareConcurrency) : 2,
+        };
+
+        // اولویت ۱: مدل محلی داخل پروژه (پوشه models/)
+        let loadedFrom = 'local';
+        try {
+          setStatus('loading', 'بارگذاری مدل محلی...');
+          progressText.textContent = 'خواندن فایل محلی...';
+          await wllama.loadModelFromUrl(LOCAL_MODEL_URL, loadOpts);
+        } catch (localErr) {
+          console.warn('Local model failed, trying Hugging Face...', localErr);
+          loadedFrom = 'hf';
+          setStatus('loading', 'دانلود مدل از Hugging Face...');
+          progressText.textContent = 'دانلود از اینترنت...';
+          try {
+            await wllama.loadModelFromHF(
+              { repo: MODEL_REPO, file: MODEL_FILE },
+              loadOpts
+            );
+          } catch (hfErr) {
+            // آخرین تلاش با URL مستقیم
+            await wllama.loadModelFromUrl(HF_MODEL_URL, loadOpts);
+            loadedFrom = 'hf-url';
           }
-        );
+        }
 
         isReady = true;
         setStatus('ready', 'مدل آماده است');
@@ -787,7 +810,10 @@
         progressText.textContent = 'آماده';
         progressFill.style.width = '100%';
         setControlsEnabled(true);
-        addMessage('system', 'مدل با موفقیت بارگذاری شد. می‌توانید چت کنید.\nتوجه: این مدل بسیار کوچک (۹۰ میلیون پارامتر) و عمدتاً انگلیسی‌آموزش‌دیده است. پاسخ‌های فارسی ممکن است ضعیف یا نادرست باشند.');
+        const srcNote = loadedFrom === 'local'
+          ? 'مدل از فایل محلی پروژه بارگذاری شد (بدون نیاز به اینترنت برای وزن‌ها).'
+          : 'مدل از Hugging Face دانلود شد.';
+        addMessage('system', `مدل با موفقیت بارگذاری شد. ${srcNote}\nتوجه: این مدل بسیار کوچک (۹۰ میلیون پارامتر) و عمدتاً انگلیسی‌آموزش‌دیده است. پاسخ‌های فارسی ممکن است ضعیف یا نادرست باشند.`);
       } catch (err) {
         console.error(err);
         isReady = false;
@@ -796,7 +822,7 @@
         loadBtn.textContent = 'تلاش مجدد بارگیری';
         progressText.textContent = 'ناموفق';
         const msg = err?.message || String(err);
-        addMessage('system', `خطا در بارگیری مدل:\n${msg}\n\nبررسی کنید: اتصال اینترنت، حافظه دستگاه، سازگاری مرورگر Chrome. سپس دوباره تلاش کنید.`, true);
+        addMessage('system', `خطا در بارگیری مدل:\n${msg}\n\nبررسی کنید: وجود فایل models/Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf، حافظه دستگاه، و سازگاری مرورگر Chrome. سپس دوباره تلاش کنید.`, true);
       }
     }
 

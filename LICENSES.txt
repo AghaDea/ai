@@ -15,8 +15,8 @@ Licenses and Third-Party Notices
    Developed by: Technology Innovation Institute (TII)
    License: Falcon-LLM License
    Full license text: see the model repository on Hugging Face.
-   The model weights are NOT redistributed inside this ZIP.
-   Users download them directly from Hugging Face.
+   The quantized GGUF file (IQ2_M) is included in the models/ folder for offline convenience.
+   Redistribution is subject to the Falcon-LLM License. See the model repo for full terms.
 
 
 3. wllama (@wllama/wllama)
