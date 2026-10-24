@@ -541,9 +541,9 @@
         <div class="messages" id="messages">
           <div class="msg system">
             به <strong>NOVA Local AI</strong> خوش آمدید.<br>
-            مدل محلی به‌صورت خودکار از پوشه <code>models/</code> بارگذاری می‌شود.<br>
-            فایل مورد نیاز: <code>Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf</code> (~۱۲٫۷ مگابایت)<br>
-            این مدل بسیار کوچک و عمدتاً انگلیسی است؛ کیفیت محدود است.
+            مدل محلی به‌صورت خودکار از <code>models/</code> بارگذاری می‌شود.<br>
+            فایل: <code>Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf</code><br>
+            <strong>توجه:</strong> معماری Falcon-H1 ممکن است در WASM مرورگر هنگام تولید پاسخ کرش کند. اگر خطا دیدید، مدل llama-سازگار بگذارید.
           </div>
         </div>
 
@@ -655,6 +655,33 @@
     let wllama = null;
     let isReady = false;
     let isGenerating = false;
+    let engineCrashed = false;
+
+    async function createEngine() {
+      return new Wllama(WLLAMA_CONFIG_PATHS);
+    }
+
+    async function resetEngineAfterCrash(reason) {
+      engineCrashed = true;
+      isReady = false;
+      try { if (wllama && wllama.exit) await wllama.exit(); } catch (_) {}
+      wllama = null;
+      setStatus('error', 'موتور کرش کرد');
+      loadBtn.disabled = false;
+      loadBtn.textContent = 'بارگذاری مجدد مدل';
+      setControlsEnabled(false);
+      addMessage('system',
+        'موتور wllama کرش کرد و باید دوباره بارگذاری شود.\n\n' +
+        'علت محتمل: معماری مدل Falcon-H1 (falcon-h1) در بیلد WASM مرورگر به‌درستی پشتیبانی نمی‌شود.\n' +
+        'مدل ظاهراً «آماده» می‌شود اما هنگام تولید توکن متوقف می‌شود.\n\n' +
+        'راه‌حل:\n' +
+        '۱. روی «بارگذاری مجدد مدل» بزنید (گاهی کمک نمی‌کند)\n' +
+        '۲. بهتر: یک مدل GGUF با معماری llama در models/ بگذارید و نام فایل را در LOCAL_MODEL_URL عوض کنید.\n\n' +
+        'جزئیات: ' + (reason || 'wllama has crashed'),
+        true
+      );
+    }
+
     let chatHistory = []; // {role: 'user'|'assistant', content: string}
 
     // ----- UI helpers -----
@@ -751,7 +778,7 @@
 
     // ----- Model loading (فقط فایل محلی — بدون دانلود وزن‌ها) -----
     async function loadModel() {
-      if (isReady) return;
+      if (isReady && !engineCrashed) return;
 
       loadBtn.disabled = true;
       loadBtn.textContent = 'در حال بارگذاری...';
@@ -783,7 +810,7 @@
           progressText.textContent = 'در حال تلاش برای خواندن فایل محلی...';
         }
 
-        wllama = new Wllama(WLLAMA_CONFIG_PATHS);
+        wllama = await createEngine();
 
         const progressCallback = ({ loaded, total }) => {
           if (total > 0) {
@@ -808,6 +835,7 @@
         });
 
         isReady = true;
+        engineCrashed = false;
         setStatus('ready', 'مدل آماده است');
         loadBtn.textContent = 'مدل آماده ✓';
         loadBtn.disabled = true;
@@ -919,11 +947,19 @@
       } catch (err) {
         console.error(err);
         thinkingEl.remove();
-        addMessage('system', `خطا در تولید پاسخ:\n${err?.message || err}\n\nمی‌توانید دوباره تلاش کنید.`, true);
+        const msg = err?.message || String(err);
+        if (/crashed|ABORT|reload the module|Invalid typed array/i.test(msg)) {
+          await resetEngineAfterCrash(msg);
+        } else {
+          addMessage('system', `خطا در تولید پاسخ:\n${msg}\n\nمی‌توانید دوباره تلاش کنید.`, true);
+          setControlsEnabled(true);
+        }
       } finally {
         isGenerating = false;
-        setControlsEnabled(true);
-        userInput.focus();
+        if (isReady) {
+          setControlsEnabled(true);
+          userInput.focus();
+        }
       }
     }
 
