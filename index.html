@@ -1,67 +1,982 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#10131d"><title>MiniAI — مدل زبانی کوچک</title>
-<style>
-:root{color-scheme:dark;--bg:#0b0e15;--panel:#141a26;--line:#293246;--text:#edf2ff;--muted:#9aa8c2;--accent:#8b9dff;--green:#69e0b1}
-*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1a2440 0,#0b0e15 58%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
-main{max-width:860px;margin:auto;padding:22px 14px 32px}.hero{padding:20px 18px;border:1px solid var(--line);border-radius:22px;background:#111724d9;box-shadow:0 18px 60px #0004}
-.logo{display:inline-flex;align-items:center;gap:9px;color:var(--green);font-weight:800;font-size:13px;letter-spacing:.4px}.orb{width:32px;height:32px;border-radius:11px;background:linear-gradient(135deg,#91a3ff,#6ce4bd);display:grid;place-items:center;color:#10131d;font-weight:900}
-h1{font-size:clamp(25px,6vw,38px);margin:16px 0 8px;letter-spacing:-.7px}.sub{color:var(--muted);line-height:1.8;margin:0;max-width:660px}
-.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}.stat{background:#0c111b;border:1px solid var(--line);border-radius:13px;padding:12px}.stat b{display:block;font-size:17px}.stat span{color:var(--muted);font-size:11px}
-.chat{margin-top:14px;border:1px solid var(--line);border-radius:20px;background:#111722;overflow:hidden}.bar{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px}.dot{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-left:7px}.status{color:var(--muted);font-size:12px}
-#log{padding:16px;min-height:240px;max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:12px}.msg{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;border-radius:15px;padding:12px 14px;max-width:94%;font-size:14px}.user{align-self:flex-start;background:#26345a;border:1px solid #384b7b}.bot{align-self:flex-end;background:#19252a;border:1px solid #294b45}.tag{font-size:10px;color:var(--muted);margin-bottom:5px}
-.composer{padding:12px;border-top:1px solid var(--line);display:grid;gap:10px}.prompt{width:100%;resize:vertical;min-height:76px;max-height:180px;background:#0b1019;color:var(--text);border:1px solid #303b50;border-radius:13px;padding:13px;font:inherit;outline:none}.prompt:focus{border-color:var(--accent)}.actions{display:flex;gap:9px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#1c2433;color:var(--text);border-radius:12px;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer}.primary{background:linear-gradient(135deg,#9aabff,#7ce4c1);color:#0a1220;border:0;flex:1}.btn:disabled{opacity:.5}.settings{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;flex-wrap:wrap}.settings input{accent-color:var(--accent)}.notice{margin-top:14px;padding:13px 15px;border:1px solid #4b4128;background:#201d16;color:#ddcfaa;border-radius:14px;font-size:12px;line-height:1.8}.foot{text-align:center;color:#69758d;font-size:11px;padding:16px}
-@media(min-width:650px){main{padding-top:34px}.hero{padding:28px}.composer{padding:16px}}
-</style></head>
-<body><main>
-<section class="hero"><div class="logo"><span class="orb">M</span> MINIAI / EXPERIMENT 001</div><h1>مدل زبانی کوچک، واقعی و قابل اجرا</h1><p class="sub">این پروژه یک شبکه عصبی بازگشتی کوچک است که از روی نمونه‌های متنی آموزش دیده و متن را نویسه‌به‌نویسه تولید می‌کند؛ پاسخ‌ها از فهرست ثابت انتخاب نمی‌شوند.</p>
-<div class="stats"><div class="stat"><b id="param">—</b><span>پارامترهای آموخته‌شده</span></div><div class="stat"><b id="size">—</b><span>حجم فایل وزن‌ها</span></div><div class="stat"><b>آفلاین</b><span>پس از باز شدن فایل‌ها</span></div></div></section>
-<section class="chat"><div class="bar"><div><span class="dot"></span><b>گفت‌وگو با MiniAI</b></div><span id="status" class="status">در حال بارگذاری وزن‌ها…</span></div><div id="log"><div class="msg bot"><div class="tag">MINIAI</div>سلام! من یک مدل زبانی بسیار کوچک هستم. یک جمله بنویس و متن تولیدشده‌ام را ببین. کیفیت من آزمایشی و محدود است.</div></div>
-<div class="composer"><textarea id="prompt" class="prompt" placeholder="پیام خود را بنویس… (Enter برای ارسال، Shift+Enter برای خط جدید)"></textarea><div class="settings"><label>طول خروجی <input id="length" type="range" min="40" max="240" value="120"></label><span id="lenval">۱۲۰ نویسه</span><label>تنوع <input id="temp" type="range" min="25" max="140" value="85"></label><span id="tempval">0.85</span></div><div class="actions"><button id="send" class="btn primary" disabled>تولید پاسخ ←</button><button id="clear" class="btn">پاک‌کردن گفت‌وگو</button></div></div></section>
-<div class="notice"><b>شفافیت:</b> وزن‌ها داخل فایل <code>model.json</code> قرار دارند و همین پروژه آن‌ها را از صفر با یک نمونه‌متن کوچک آموزش داده است. این یک LLM عمومی در سطح ChatGPT نیست؛ به‌دلیل سقف ۱۰ مگابایت، دانش و انسجام آن بسیار محدود است. برای اجرای آفلاین، فایل را از طریق یک میزبان محلی یا HTTPS باز کن؛ بعضی مرورگرها فایل‌های محلی را محدود می‌کنند.</div>
-<div class="foot">MiniAI · tiny character-level RNN · بدون API و بدون پاسخ‌های از پیش تعیین‌شده</div>
-</main>
-<script>
-let M=null, chars=[], W={}, H=0, V=0;
-const $=id=>document.getElementById(id);
-function mat(name){return W[name]}
-function dotRow(a,b,row,cols){let s=0,off=row*cols;for(let j=0;j<cols;j++)s+=a[j]*b[off+j];return s}
-function vecMat(vec, matrix, rows, cols, bias=null){let out=new Float32Array(cols);for(let j=0;j<cols;j++){let s=bias?bias[j]:0;for(let i=0;i<rows;i++)s+=vec[i]*matrix[j*rows+i];out[j]=s}return out}
-function addTanh(a,b){let o=new Float32Array(a.length);for(let i=0;i<a.length;i++)o[i]=Math.tanh(a[i]+b[i]);return o}
-function forward(token,h){
- const emb=W['emb.weight'].slice(token*H,(token+1)*H);
- const a=vecMat(emb,W['xh.weight'],H,H);
- const b=vecMat(h,W['hh.weight'],H,H,W['hh.bias']);
- h=addTanh(a,b);
- const logits=vecMat(h,W['out.weight'],H,V,W['out.bias']);
- return {logits,h};
-}
-function sample(logits,temp){
- let max=-Infinity;for(let x of logits)if(x>max)max=x;
- let probs=new Float64Array(logits.length),sum=0;
- for(let i=0;i<logits.length;i++){probs[i]=Math.exp((logits[i]-max)/temp);sum+=probs[i]}
- let r=Math.random()*sum;for(let i=0;i<probs.length;i++){r-=probs[i];if(r<=0)return i}return probs.length-1;
-}
-async function loadModel(){
- try{let res=await fetch('./model.json');if(!res.ok)throw Error('model.json بارگذاری نشد');M=await res.json();chars=M.vocab;W={};for(let k in M.weights)W[k]=new Float32Array(M.weights[k].flat(Infinity));H=M.hidden;V=chars.length;
- let count=0;for(let k in W)count+=W[k].length;
- $('param').textContent=count.toLocaleString('fa-IR');$('size').textContent=(new Blob([JSON.stringify(M)]).size/1024).toFixed(0)+' KB';$('status').textContent='آماده تولید متن';$('send').disabled=false;
- }catch(e){$('status').textContent='خطا در بارگذاری';addMessage('bot','بارگذاری مدل ناموفق بود. اگر فایل را مستقیم باز کرده‌ای، آن را از طریق یک میزبان محلی یا GitHub Pages اجرا کن. جزئیات: '+e.message)}
-}
-function addMessage(who,text){let d=document.createElement('div');d.className='msg '+who;let tag=document.createElement('div');tag.className='tag';tag.textContent=who==='user'?'شما':'MINIAI · تولیدشده توسط مدل';d.appendChild(tag);d.appendChild(document.createTextNode(text));$('log').appendChild(d);$('log').scrollTop=$('log').scrollHeight}
-function generate(seed,maxChars,temp){
- let h=new Float32Array(H), token=chars.indexOf('\n');if(token<0)token=0;
- // Feed a short rolling context so the output is conditioned on the user's message.
- let context=seed.slice(-180);for(let c of context){let ix=chars.indexOf(c);if(ix>=0){let f=forward(ix,h);h=f.h;token=ix}}
- let result='';for(let i=0;i<maxChars;i++){let f=forward(token,h);h=f.h;token=sample(f.logits,temp);result+=chars[token]}
- return result.trim();
-}
-$('send').onclick=()=>{let p=$('prompt').value.trim();if(!p||!M)return;addMessage('user',p);$('prompt').value='';$('send').disabled=true;$('status').textContent='در حال تولید…';setTimeout(()=>{let answer=generate(p,Number($('length').value),Number($('temp').value)/100);addMessage('bot',answer||'');$('send').disabled=false;$('status').textContent='آماده تولید متن'},20)};
-$('prompt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('send').click()}});
-$('clear').onclick=()=>{$('log').innerHTML='';addMessage('bot','گفت‌وگو پاک شد. هر متنی بنویس تا مدل یک دنباله تازه تولید کند.')};
-$('length').oninput=e=>$('lenval').textContent=Number(e.target.value).toLocaleString('fa-IR')+' نویسه';
-$('temp').oninput=e=>$('tempval').textContent=(Number(e.target.value)/100).toFixed(2);
-loadModel();
-</script></body></html>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="description" content="NOVA — Local AI: چت‌بات هوش مصنوعی محلی در مرورگر Chrome" />
+  <title>NOVA — Local AI</title>
+  <style>
+    :root {
+      --bg-deep: #0a0e17;
+      --bg-panel: rgba(15, 23, 42, 0.85);
+      --bg-bubble-user: linear-gradient(135deg, #1e3a5f 0%, #1a2a4a 100%);
+      --bg-bubble-ai: rgba(30, 41, 59, 0.9);
+      --accent: #6366f1;
+      --accent-glow: rgba(99, 102, 241, 0.4);
+      --accent-soft: #818cf8;
+      --purple: #a78bfa;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --border: rgba(148, 163, 184, 0.15);
+      --success: #34d399;
+      --warning: #fbbf24;
+      --error: #f87171;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+      --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--bg-deep);
+      color: var(--text);
+      line-height: 1.6;
+      background-image:
+        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(99, 102, 241, 0.15), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(167, 139, 250, 0.08), transparent);
+    }
+
+    .app {
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(10, 14, 23, 0.9);
+      backdrop-filter: blur(12px);
+      flex-shrink: 0;
+      z-index: 10;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 18px;
+      color: white;
+      box-shadow: 0 0 20px var(--accent-glow);
+    }
+
+    .logo-text {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(90deg, #e2e8f0, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .logo-sub {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      font-weight: 400;
+      display: block;
+      margin-top: -2px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      font-weight: 500;
+      background: rgba(30, 41, 59, 0.8);
+      border: 1px solid var(--border);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-muted);
+      transition: background 0.3s;
+    }
+
+    .status-dot.ready { background: var(--success); box-shadow: 0 0 8px var(--success); }
+    .status-dot.loading { background: var(--warning); animation: pulse 1.2s infinite; }
+    .status-dot.error { background: var(--error); }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    /* Main layout */
+    .main {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      min-height: 0;
+    }
+
+    /* Sidebar */
+    .sidebar {
+      width: 280px;
+      flex-shrink: 0;
+      background: var(--bg-panel);
+      border-left: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      padding: 16px;
+      gap: 16px;
+    }
+
+    .panel {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .panel-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-soft);
+      margin-bottom: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 10px 16px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: inherit;
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+
+    .btn:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      color: white;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .btn-primary:not(:disabled):hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 24px var(--accent-glow);
+    }
+
+    .btn-secondary {
+      background: rgba(51, 65, 85, 0.8);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    .btn-secondary:not(:disabled):hover {
+      background: rgba(71, 85, 105, 0.9);
+    }
+
+    .btn-danger {
+      background: rgba(248, 113, 113, 0.15);
+      color: var(--error);
+      border: 1px solid rgba(248, 113, 113, 0.3);
+    }
+
+    .progress-wrap {
+      margin-top: 10px;
+      display: none;
+    }
+
+    .progress-wrap.visible {
+      display: block;
+    }
+
+    .progress-bar {
+      height: 6px;
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 3px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #6366f1, #a78bfa);
+      width: 0%;
+      transition: width 0.2s;
+      border-radius: 3px;
+    }
+
+    .progress-text {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      text-align: center;
+    }
+
+    .setting-row {
+      margin-bottom: 12px;
+    }
+
+    .setting-row:last-child {
+      margin-bottom: 0;
+    }
+
+    .setting-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .setting-label span.value {
+      color: var(--accent-soft);
+      font-weight: 600;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 3px;
+      outline: none;
+    }
+
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 8px var(--accent-glow);
+    }
+
+    .hint {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+      line-height: 1.4;
+    }
+
+    .stats {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    /* Chat area */
+    .chat-area {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      overflow: hidden;
+    }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    .msg {
+      max-width: 85%;
+      padding: 12px 16px;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      line-height: 1.55;
+      word-wrap: break-word;
+      white-space: pre-wrap;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg.user {
+      align-self: flex-start;
+      background: var(--bg-bubble-user);
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.ai {
+      align-self: flex-end;
+      background: var(--bg-bubble-ai);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg.system {
+      align-self: center;
+      max-width: 95%;
+      background: rgba(30, 41, 59, 0.5);
+      border: 1px dashed var(--border);
+      color: var(--text-muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+
+    .msg.error-msg {
+      border-color: rgba(248, 113, 113, 0.4);
+      color: var(--error);
+    }
+
+    .msg .role {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--accent-soft);
+      margin-bottom: 4px;
+      opacity: 0.8;
+    }
+
+    .msg.user .role { color: #93c5fd; }
+
+    .typing {
+      display: inline-flex;
+      gap: 4px;
+      padding: 4px 0;
+    }
+
+    .typing span {
+      width: 6px;
+      height: 6px;
+      background: var(--accent-soft);
+      border-radius: 50%;
+      animation: bounce 1.2s infinite;
+    }
+
+    .typing span:nth-child(2) { animation-delay: 0.15s; }
+    .typing span:nth-child(3) { animation-delay: 0.3s; }
+
+    @keyframes bounce {
+      0%, 60%, 100% { transform: translateY(0); }
+      30% { transform: translateY(-4px); }
+    }
+
+    /* Input area */
+    .input-area {
+      padding: 12px 16px 16px;
+      border-top: 1px solid var(--border);
+      background: rgba(10, 14, 23, 0.95);
+      flex-shrink: 0;
+    }
+
+    .input-row {
+      display: flex;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    textarea {
+      flex: 1;
+      min-height: 48px;
+      max-height: 140px;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: rgba(15, 23, 42, 0.8);
+      color: var(--text);
+      font-family: inherit;
+      font-size: 0.9rem;
+      resize: none;
+      outline: none;
+      transition: border-color 0.2s;
+      line-height: 1.45;
+    }
+
+    textarea:focus {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--accent-glow);
+    }
+
+    textarea:disabled {
+      opacity: 0.5;
+    }
+
+    .send-btn {
+      width: 48px;
+      height: 48px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #6366f1, #8b5cf6);
+      border: none;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+
+    .send-btn:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+      box-shadow: none;
+    }
+
+    .send-btn:not(:disabled):hover {
+      transform: scale(1.05);
+    }
+
+    .input-hint {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 8px;
+      text-align: center;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .main {
+        flex-direction: column-reverse;
+      }
+
+      .sidebar {
+        width: 100%;
+        max-height: 38vh;
+        border-left: none;
+        border-top: 1px solid var(--border);
+        padding: 12px;
+        gap: 12px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        overflow-x: auto;
+      }
+
+      .panel {
+        flex: 1 1 140px;
+        min-width: 140px;
+      }
+
+      .msg {
+        max-width: 92%;
+      }
+
+      header {
+        padding: 10px 12px;
+      }
+
+      .logo-text {
+        font-size: 1.1rem;
+      }
+    }
+
+    /* LTR support inside messages */
+    .msg[dir="ltr"] {
+      text-align: left;
+      direction: ltr;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="logo">
+        <div class="logo-icon">N</div>
+        <div>
+          <div class="logo-text">NOVA</div>
+          <span class="logo-sub">Local AI · Falcon-H1 Tiny</span>
+        </div>
+      </div>
+      <div class="status-badge" id="statusBadge">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">مدل بارگذاری نشده</span>
+      </div>
+    </header>
+
+    <div class="main">
+      <div class="chat-area">
+        <div class="messages" id="messages">
+          <div class="msg system">
+            به <strong>NOVA Local AI</strong> خوش آمدید.<br>
+            مدل Falcon-H1-Tiny-90M (حدود ۱۲٫۷ مگابایت) یک مدل بسیار کوچک انگلیسی‌محور است.<br>
+            کیفیت پاسخ‌ها محدود است و ممکن است خطا یا توهم داشته باشد. ابتدا مدل را بارگیری کنید.
+          </div>
+        </div>
+
+        <div class="input-area">
+          <div class="input-row">
+            <textarea
+              id="userInput"
+              placeholder="پیام خود را بنویسید... (Enter برای ارسال، Shift+Enter خط جدید)"
+              rows="1"
+              disabled
+            ></textarea>
+            <button class="send-btn" id="sendBtn" disabled title="ارسال">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="22" y1="2" x2="11" y2="13"></line>
+                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+              </svg>
+            </button>
+          </div>
+          <div class="input-hint" id="inputHint">برای شروع، مدل را از پنل کناری بارگیری کنید</div>
+        </div>
+      </div>
+
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-title">مدیریت مدل</div>
+          <button class="btn btn-primary" id="loadBtn">بارگیری مدل</button>
+          <div class="progress-wrap" id="progressWrap">
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText">۰٪</div>
+          </div>
+          <p class="hint" style="margin-top:10px">
+            فایل: Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf ≈ ۱۲٫۷ مگابایت<br>
+            موتور: wllama (llama.cpp WASM)
+          </p>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">تنظیمات تولید</div>
+          <div class="setting-row">
+            <div class="setting-label">
+              <span>خلاقیت (Temperature)</span>
+              <span class="value" id="tempVal">0.7</span>
+            </div>
+            <input type="range" id="tempRange" min="0.1" max="1.5" step="0.05" value="0.7" />
+            <p class="hint">مقادیر پایین‌تر = پاسخ دقیق‌تر و کمتر خلاق</p>
+          </div>
+          <div class="setting-row">
+            <div class="setting-label">
+              <span>حداکثر توکن خروجی</span>
+              <span class="value" id="tokenVal">256</span>
+            </div>
+            <input type="range" id="tokenRange" min="32" max="512" step="16" value="256" />
+            <p class="hint">مدل کوچک است؛ مقادیر بالا ممکن است کند یا بی‌کیفیت باشد</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">مکالمه</div>
+          <div class="stats">
+            <span>تعداد پیام‌ها: <strong id="msgCount">0</strong></span>
+          </div>
+          <button class="btn btn-secondary" id="exportBtn" style="margin-top:10px">خروجی JSON</button>
+          <button class="btn btn-secondary" id="exportTxtBtn" style="margin-top:8px">خروجی TXT</button>
+          <button class="btn btn-danger" id="clearBtn" style="margin-top:8px">پاک کردن مکالمه</button>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script type="module">
+    // ========== NOVA Local AI ==========
+    // Engine: @wllama/wllama (llama.cpp WASM)
+    // Model: Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf (~12.7 MB)
+
+    import { Wllama } from 'https://cdn.jsdelivr.net/npm/@wllama/wllama@3.8.1/esm/index.js';
+    import WasmFromCDN from 'https://cdn.jsdelivr.net/npm/@wllama/wllama@3.8.1/esm/wasm-from-cdn.js';
+
+    const MODEL_REPO = 'tiiuae/Falcon-H1-Tiny-90M-Instruct-GGUF';
+    const MODEL_FILE = 'Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf';
+    const MODEL_URL = `https://huggingface.co/${MODEL_REPO}/resolve/main/${MODEL_FILE}`;
+    const STORAGE_KEY = 'nova_chat_history_v1';
+    const SETTINGS_KEY = 'nova_settings_v1';
+
+    // DOM
+    const $ = (id) => document.getElementById(id);
+    const messagesEl = $('messages');
+    const userInput = $('userInput');
+    const sendBtn = $('sendBtn');
+    const loadBtn = $('loadBtn');
+    const statusDot = $('statusDot');
+    const statusText = $('statusText');
+    const progressWrap = $('progressWrap');
+    const progressFill = $('progressFill');
+    const progressText = $('progressText');
+    const tempRange = $('tempRange');
+    const tokenRange = $('tokenRange');
+    const tempVal = $('tempVal');
+    const tokenVal = $('tokenVal');
+    const msgCount = $('msgCount');
+    const inputHint = $('inputHint');
+    const clearBtn = $('clearBtn');
+    const exportBtn = $('exportBtn');
+    const exportTxtBtn = $('exportTxtBtn');
+
+    let wllama = null;
+    let isReady = false;
+    let isGenerating = false;
+    let chatHistory = []; // {role: 'user'|'assistant', content: string}
+
+    // ----- UI helpers -----
+    function setStatus(state, text) {
+      statusDot.className = 'status-dot ' + (state || '');
+      statusText.textContent = text;
+    }
+
+    function addMessage(role, content, isError = false) {
+      const div = document.createElement('div');
+      div.className = `msg ${role === 'user' ? 'user' : role === 'assistant' ? 'ai' : 'system'}`;
+      if (isError) div.classList.add('error-msg');
+
+      // Detect mostly English for LTR
+      const enRatio = (content.match(/[a-zA-Z]/g) || []).length / Math.max(content.length, 1);
+      if (enRatio > 0.5 && role !== 'system') {
+        div.setAttribute('dir', 'ltr');
+      }
+
+      if (role === 'user' || role === 'assistant') {
+        const roleLabel = document.createElement('div');
+        roleLabel.className = 'role';
+        roleLabel.textContent = role === 'user' ? 'شما' : 'NOVA';
+        div.appendChild(roleLabel);
+      }
+
+      const body = document.createElement('div');
+      body.className = 'content';
+      body.textContent = content;
+      div.appendChild(body);
+
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return body; // for streaming updates
+    }
+
+    function updateMsgCount() {
+      msgCount.textContent = chatHistory.length;
+    }
+
+    function saveHistory() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(chatHistory));
+      } catch (e) {
+        console.warn('localStorage full or unavailable', e);
+        addMessage('system', 'فضای ذخیره‌سازی مرورگر پر است. تاریخچه ذخیره نشد.', true);
+      }
+    }
+
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (raw) {
+          chatHistory = JSON.parse(raw);
+          chatHistory.forEach((m) => addMessage(m.role, m.content));
+          updateMsgCount();
+        }
+      } catch (e) {
+        console.warn('Failed to load history', e);
+      }
+    }
+
+    function saveSettings() {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify({
+        temperature: parseFloat(tempRange.value),
+        maxTokens: parseInt(tokenRange.value, 10),
+      }));
+    }
+
+    function loadSettings() {
+      try {
+        const raw = localStorage.getItem(SETTINGS_KEY);
+        if (raw) {
+          const s = JSON.parse(raw);
+          if (s.temperature != null) {
+            tempRange.value = s.temperature;
+            tempVal.textContent = s.temperature;
+          }
+          if (s.maxTokens != null) {
+            tokenRange.value = s.maxTokens;
+            tokenVal.textContent = s.maxTokens;
+          }
+        }
+      } catch (_) {}
+    }
+
+    function setControlsEnabled(enabled) {
+      userInput.disabled = !enabled;
+      sendBtn.disabled = !enabled || isGenerating;
+      if (enabled) {
+        inputHint.textContent = 'Enter برای ارسال · Shift+Enter خط جدید';
+      }
+    }
+
+    // ----- Model loading -----
+    async function loadModel() {
+      if (isReady || loadBtn.disabled) return;
+
+      loadBtn.disabled = true;
+      loadBtn.textContent = 'در حال آماده‌سازی...';
+      setStatus('loading', 'آماده‌سازی موتور...');
+      progressWrap.classList.add('visible');
+      progressFill.style.width = '0%';
+      progressText.textContent = 'شروع دانلود...';
+
+      try {
+        wllama = new Wllama(WasmFromCDN);
+
+        const progressCallback = ({ loaded, total }) => {
+          if (total > 0) {
+            const pct = Math.round((loaded / total) * 100);
+            progressFill.style.width = pct + '%';
+            const mbLoaded = (loaded / (1024 * 1024)).toFixed(1);
+            const mbTotal = (total / (1024 * 1024)).toFixed(1);
+            progressText.textContent = `${pct}% · ${mbLoaded} / ${mbTotal} مگابایت`;
+            setStatus('loading', `دانلود مدل... ${pct}%`);
+          } else {
+            progressText.textContent = `دانلود... ${(loaded / (1024 * 1024)).toFixed(1)} مگابایت`;
+          }
+        };
+
+        setStatus('loading', 'دانلود مدل از Hugging Face...');
+        await wllama.loadModelFromHF(
+          { repo: MODEL_REPO, file: MODEL_FILE },
+          {
+            progressCallback,
+            n_ctx: 2048,
+            n_threads: navigator.hardwareConcurrency ? Math.min(4, navigator.hardwareConcurrency) : 2,
+          }
+        );
+
+        isReady = true;
+        setStatus('ready', 'مدل آماده است');
+        loadBtn.textContent = 'مدل بارگذاری شد ✓';
+        progressText.textContent = 'آماده';
+        progressFill.style.width = '100%';
+        setControlsEnabled(true);
+        addMessage('system', 'مدل با موفقیت بارگذاری شد. می‌توانید چت کنید.\nتوجه: این مدل بسیار کوچک (۹۰ میلیون پارامتر) و عمدتاً انگلیسی‌آموزش‌دیده است. پاسخ‌های فارسی ممکن است ضعیف یا نادرست باشند.');
+      } catch (err) {
+        console.error(err);
+        isReady = false;
+        setStatus('error', 'خطا در بارگذاری');
+        loadBtn.disabled = false;
+        loadBtn.textContent = 'تلاش مجدد بارگیری';
+        progressText.textContent = 'ناموفق';
+        const msg = err?.message || String(err);
+        addMessage('system', `خطا در بارگیری مدل:\n${msg}\n\nبررسی کنید: اتصال اینترنت، حافظه دستگاه، سازگاری مرورگر Chrome. سپس دوباره تلاش کنید.`, true);
+      }
+    }
+
+    // ----- Generation -----
+    async function sendMessage() {
+      if (!isReady || isGenerating) return;
+      const text = userInput.value.trim();
+      if (!text) return;
+
+      userInput.value = '';
+      userInput.style.height = 'auto';
+      isGenerating = true;
+      sendBtn.disabled = true;
+      userInput.disabled = true;
+
+      chatHistory.push({ role: 'user', content: text });
+      addMessage('user', text);
+      updateMsgCount();
+      saveHistory();
+
+      const thinkingEl = document.createElement('div');
+      thinkingEl.className = 'msg ai';
+      thinkingEl.innerHTML = '<div class="role">NOVA</div><div class="typing"><span></span><span></span><span></span></div>';
+      messagesEl.appendChild(thinkingEl);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+
+      try {
+        const temperature = parseFloat(tempRange.value);
+        const max_tokens = parseInt(tokenRange.value, 10);
+
+        // Build messages for chat template (keep last few turns to fit small context)
+        const messagesForModel = chatHistory.slice(-8).map((m) => ({
+          role: m.role,
+          content: m.content,
+        }));
+
+        // Prefer streaming if available
+        let fullReply = '';
+        const contentEl = thinkingEl.querySelector('.typing')?.parentElement
+          ? (() => {
+              thinkingEl.innerHTML = '<div class="role">NOVA</div><div class="content"></div>';
+              return thinkingEl.querySelector('.content');
+            })()
+          : null;
+
+        try {
+          const stream = await wllama.createChatCompletion({
+            messages: messagesForModel,
+            max_tokens,
+            temperature,
+            top_k: 40,
+            top_p: 0.9,
+            stream: true,
+          });
+
+          if (stream && typeof stream[Symbol.asyncIterator] === 'function') {
+            for await (const chunk of stream) {
+              const delta = chunk?.choices?.[0]?.delta?.content
+                || chunk?.choices?.[0]?.text
+                || '';
+              if (delta) {
+                fullReply += delta;
+                if (contentEl) {
+                  contentEl.textContent = fullReply;
+                  messagesEl.scrollTop = messagesEl.scrollHeight;
+                }
+              }
+            }
+          } else {
+            // Non-streaming fallback
+            const response = await wllama.createChatCompletion({
+              messages: messagesForModel,
+              max_tokens,
+              temperature,
+              top_k: 40,
+              top_p: 0.9,
+            });
+            fullReply = response?.choices?.[0]?.message?.content
+              || response?.choices?.[0]?.text
+              || '';
+            if (contentEl) contentEl.textContent = fullReply;
+          }
+        } catch (streamErr) {
+          // Fallback non-stream
+          console.warn('Stream failed, trying non-stream', streamErr);
+          const response = await wllama.createChatCompletion({
+            messages: messagesForModel,
+            max_tokens,
+            temperature,
+            top_k: 40,
+            top_p: 0.9,
+          });
+          fullReply = response?.choices?.[0]?.message?.content
+            || response?.choices?.[0]?.text
+            || String(response || '');
+          if (contentEl) contentEl.textContent = fullReply;
+        }
+
+        if (!fullReply.trim()) {
+          fullReply = '(پاسخ خالی دریافت شد — مدل بسیار کوچک است یا تنظیمات نامناسب)';
+          if (contentEl) contentEl.textContent = fullReply;
+        }
+
+        chatHistory.push({ role: 'assistant', content: fullReply });
+        updateMsgCount();
+        saveHistory();
+      } catch (err) {
+        console.error(err);
+        thinkingEl.remove();
+        addMessage('system', `خطا در تولید پاسخ:\n${err?.message || err}\n\nمی‌توانید دوباره تلاش کنید.`, true);
+      } finally {
+        isGenerating = false;
+        setControlsEnabled(true);
+        userInput.focus();
+      }
+    }
+
+    // ----- Events -----
+    loadBtn.addEventListener('click', loadModel);
+
+    sendBtn.addEventListener('click', sendMessage);
+
+    userInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    userInput.addEventListener('input', () => {
+      userInput.style.height = 'auto';
+      userInput.style.height = Math.min(userInput.scrollHeight, 140) + 'px';
+    });
+
+    tempRange.addEventListener('input', () => {
+      tempVal.textContent = tempRange.value;
+      saveSettings();
+    });
+
+    tokenRange.addEventListener('input', () => {
+      tokenVal.textContent = tokenRange.value;
+      saveSettings();
+    });
+
+    clearBtn.addEventListener('click', () => {
+      if (!confirm('آیا مطمئن هستید که می‌خواهید تمام مکالمه پاک شود؟')) return;
+      chatHistory = [];
+      messagesEl.innerHTML = '';
+      addMessage('system', 'مکالمه پاک شد.');
+      updateMsgCount();
+      saveHistory();
+    });
+
+    exportBtn.addEventListener('click', () => {
+      const data = JSON.stringify(chatHistory, null, 2);
+      downloadFile('nova-chat.json', data, 'application/json');
+    });
+
+    exportTxtBtn.addEventListener('click', () => {
+      const text = chatHistory.map((m) => {
+        const who = m.role === 'user' ? 'شما' : 'NOVA';
+        return `${who}:\n${m.content}\n`;
+      }).join('\n---\n\n');
+      downloadFile('nova-chat.txt', text, 'text/plain');
+    });
+
+    function downloadFile(name, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // Init
+    loadSettings();
+    loadHistory();
+    setStatus('', 'مدل بارگذاری نشده');
+  </script>
+</body>
+</html>
