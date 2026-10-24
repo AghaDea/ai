@@ -541,8 +541,9 @@
         <div class="messages" id="messages">
           <div class="msg system">
             به <strong>NOVA Local AI</strong> خوش آمدید.<br>
-            مدل Falcon-H1-Tiny-90M (حدود ۱۲٫۷ مگابایت) یک مدل بسیار کوچک انگلیسی‌محور است.<br>
-            کیفیت پاسخ‌ها محدود است و ممکن است خطا یا توهم داشته باشد. ابتدا مدل را بارگیری کنید.
+            مدل محلی به‌صورت خودکار از پوشه <code>models/</code> بارگذاری می‌شود.<br>
+            فایل مورد نیاز: <code>Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf</code> (~۱۲٫۷ مگابایت)<br>
+            این مدل بسیار کوچک و عمدتاً انگلیسی است؛ کیفیت محدود است.
           </div>
         </div>
 
@@ -561,22 +562,22 @@
               </svg>
             </button>
           </div>
-          <div class="input-hint" id="inputHint">برای شروع، مدل را از پنل کناری بارگیری کنید</div>
+          <div class="input-hint" id="inputHint">در حال بارگذاری مدل محلی...</div>
         </div>
       </div>
 
       <aside class="sidebar">
         <div class="panel">
-          <div class="panel-title">مدیریت مدل</div>
-          <button class="btn btn-primary" id="loadBtn">بارگیری مدل</button>
-          <div class="progress-wrap" id="progressWrap">
+          <div class="panel-title">وضعیت مدل</div>
+          <button class="btn btn-primary" id="loadBtn">بارگذاری خودکار...</button>
+          <div class="progress-wrap visible" id="progressWrap">
             <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-            <div class="progress-text" id="progressText">۰٪</div>
+            <div class="progress-text" id="progressText">در حال شروع...</div>
           </div>
           <p class="hint" style="margin-top:10px">
-            فایل محلی: models/Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf ≈ ۱۲٫۷ مگابایت<br>
-            موتور: wllama (llama.cpp WASM)<br>
-            اولویت: فایل محلی پروژه → سپس Hugging Face
+            مسیر مدل: <code>models/Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf</code><br>
+            فقط فایل محلی — بدون دانلود وزن‌ها<br>
+            موتور: wllama (llama.cpp WASM)
           </p>
         </div>
 
@@ -621,12 +622,8 @@
     import { Wllama } from 'https://cdn.jsdelivr.net/npm/@wllama/wllama@3.8.1/esm/index.js';
     import WasmFromCDN from 'https://cdn.jsdelivr.net/npm/@wllama/wllama@3.8.1/esm/wasm-from-cdn.js';
 
-    const MODEL_REPO = 'tiiuae/Falcon-H1-Tiny-90M-Instruct-GGUF';
-    const MODEL_FILE = 'Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf';
-    // مدل داخل پروژه (پوشه models/) — اولویت اول
+    // فقط مدل محلی — هیچ دانلودی از اینترنت برای وزن‌ها انجام نمی‌شود
     const LOCAL_MODEL_URL = './models/Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf';
-    // پشتیبان: دانلود از Hugging Face
-    const HF_MODEL_URL = `https://huggingface.co/${MODEL_REPO}/resolve/main/${MODEL_FILE}`;
     const STORAGE_KEY = 'nova_chat_history_v1';
     const SETTINGS_KEY = 'nova_settings_v1';
 
@@ -748,81 +745,91 @@
       }
     }
 
-    // ----- Model loading -----
+    // ----- Model loading (فقط فایل محلی — بدون دانلود وزن‌ها) -----
     async function loadModel() {
-      if (isReady || loadBtn.disabled) return;
+      if (isReady) return;
+      if (loadBtn.disabled && loadBtn.textContent.includes('آماده‌سازی')) return;
 
       loadBtn.disabled = true;
-      loadBtn.textContent = 'در حال آماده‌سازی...';
+      loadBtn.textContent = 'در حال بارگذاری...';
       setStatus('loading', 'آماده‌سازی موتور...');
       progressWrap.classList.add('visible');
-      progressFill.style.width = '0%';
-      progressText.textContent = 'شروع بارگذاری...';
+      progressFill.style.width = '5%';
+      progressText.textContent = 'بررسی فایل محلی...';
+      setControlsEnabled(false);
 
       try {
+        // ابتدا وجود فایل را بررسی کن
+        let headOk = false;
+        try {
+          const head = await fetch(LOCAL_MODEL_URL, { method: 'HEAD' });
+          headOk = head.ok;
+          if (head.ok) {
+            const size = head.headers.get('content-length');
+            if (size) {
+              const mb = (parseInt(size, 10) / (1024 * 1024)).toFixed(1);
+              progressText.textContent = `فایل پیدا شد (${mb} مگابایت) — در حال بارگذاری...`;
+            }
+          }
+        } catch (_) {
+          headOk = false;
+        }
+
+        if (!headOk) {
+          // تلاش با GET کوچک یا ادامه و اجازه خطا به loadModelFromUrl
+          progressText.textContent = 'در حال تلاش برای خواندن فایل محلی...';
+        }
+
         wllama = new Wllama(WasmFromCDN);
 
         const progressCallback = ({ loaded, total }) => {
           if (total > 0) {
             const pct = Math.round((loaded / total) * 100);
-            progressFill.style.width = pct + '%';
+            progressFill.style.width = Math.max(5, pct) + '%';
             const mbLoaded = (loaded / (1024 * 1024)).toFixed(1);
             const mbTotal = (total / (1024 * 1024)).toFixed(1);
             progressText.textContent = `${pct}% · ${mbLoaded} / ${mbTotal} مگابایت`;
-            setStatus('loading', `بارگذاری مدل... ${pct}%`);
-          } else {
+            setStatus('loading', `بارگذاری مدل محلی... ${pct}%`);
+          } else if (loaded > 0) {
             progressText.textContent = `بارگذاری... ${(loaded / (1024 * 1024)).toFixed(1)} مگابایت`;
           }
         };
 
-        const loadOpts = {
+        setStatus('loading', 'بارگذاری مدل محلی...');
+        await wllama.loadModelFromUrl(LOCAL_MODEL_URL, {
           progressCallback,
           n_ctx: 2048,
-          n_threads: navigator.hardwareConcurrency ? Math.min(4, navigator.hardwareConcurrency) : 2,
-        };
-
-        // اولویت ۱: مدل محلی داخل پروژه (پوشه models/)
-        let loadedFrom = 'local';
-        try {
-          setStatus('loading', 'بارگذاری مدل محلی...');
-          progressText.textContent = 'خواندن فایل محلی...';
-          await wllama.loadModelFromUrl(LOCAL_MODEL_URL, loadOpts);
-        } catch (localErr) {
-          console.warn('Local model failed, trying Hugging Face...', localErr);
-          loadedFrom = 'hf';
-          setStatus('loading', 'دانلود مدل از Hugging Face...');
-          progressText.textContent = 'دانلود از اینترنت...';
-          try {
-            await wllama.loadModelFromHF(
-              { repo: MODEL_REPO, file: MODEL_FILE },
-              loadOpts
-            );
-          } catch (hfErr) {
-            // آخرین تلاش با URL مستقیم
-            await wllama.loadModelFromUrl(HF_MODEL_URL, loadOpts);
-            loadedFrom = 'hf-url';
-          }
-        }
+          n_threads: navigator.hardwareConcurrency
+            ? Math.min(4, navigator.hardwareConcurrency)
+            : 2,
+        });
 
         isReady = true;
         setStatus('ready', 'مدل آماده است');
-        loadBtn.textContent = 'مدل بارگذاری شد ✓';
+        loadBtn.textContent = 'مدل آماده ✓';
+        loadBtn.disabled = true;
         progressText.textContent = 'آماده';
         progressFill.style.width = '100%';
         setControlsEnabled(true);
-        const srcNote = loadedFrom === 'local'
-          ? 'مدل از فایل محلی پروژه بارگذاری شد (بدون نیاز به اینترنت برای وزن‌ها).'
-          : 'مدل از Hugging Face دانلود شد.';
-        addMessage('system', `مدل با موفقیت بارگذاری شد. ${srcNote}\nتوجه: این مدل بسیار کوچک (۹۰ میلیون پارامتر) و عمدتاً انگلیسی‌آموزش‌دیده است. پاسخ‌های فارسی ممکن است ضعیف یا نادرست باشند.`);
+        addMessage(
+          'system',
+          'مدل محلی با موفقیت بارگذاری شد. می‌توانید چت کنید.\nتوجه: مدل Falcon-H1-Tiny (۹۰M) بسیار کوچک و عمدتاً انگلیسی است. پاسخ فارسی ممکن است ضعیف باشد.'
+        );
       } catch (err) {
         console.error(err);
         isReady = false;
-        setStatus('error', 'خطا در بارگذاری');
+        setStatus('error', 'مدل پیدا نشد');
         loadBtn.disabled = false;
-        loadBtn.textContent = 'تلاش مجدد بارگیری';
+        loadBtn.textContent = 'تلاش مجدد';
         progressText.textContent = 'ناموفق';
+        progressFill.style.width = '0%';
+        setControlsEnabled(false);
         const msg = err?.message || String(err);
-        addMessage('system', `خطا در بارگیری مدل:\n${msg}\n\nبررسی کنید: وجود فایل models/Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf، حافظه دستگاه، و سازگاری مرورگر Chrome. سپس دوباره تلاش کنید.`, true);
+        addMessage(
+          'system',
+          `خطا: مدل محلی یافت نشد یا بارگذاری نشد.\n\nمسیر مورد انتظار:\nmodels/Falcon-H1-Tiny-90M-Instruct-IQ2_M.gguf\n\nکارهایی که باید انجام دهید:\n۱. فایل GGUF را دانلود کنید و داخل پوشه models/ بگذارید.\n۲. پروژه را با سرور محلی اجرا کنید (نه file://):\n   python3 -m http.server 8080\n۳. صفحه را رفرش کرده و دوباره تلاش کنید.\n\nجزئیات خطا:\n${msg}`,
+          true
+        );
       }
     }
 
@@ -999,10 +1006,11 @@
       URL.revokeObjectURL(url);
     }
 
-    // Init
+    // Init — بارگذاری خودکار مدل محلی هنگام باز شدن صفحه
     loadSettings();
     loadHistory();
-    setStatus('', 'مدل بارگذاری نشده');
+    setStatus('loading', 'در حال اتصال به مدل محلی...');
+    loadModel();
   </script>
 </body>
 </html>
