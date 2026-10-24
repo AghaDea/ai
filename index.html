@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10131d"><title>MiniAI — مدل زبانی کوچک</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0e15;--panel:#141a26;--line:#293246;--text:#edf2ff;--muted:#9aa8c2;--accent:#8b9dff;--green:#69e0b1}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at top,#1a2440 0,#0b0e15 58%);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh}
+main{max-width:860px;margin:auto;padding:22px 14px 32px}.hero{padding:20px 18px;border:1px solid var(--line);border-radius:22px;background:#111724d9;box-shadow:0 18px 60px #0004}
+.logo{display:inline-flex;align-items:center;gap:9px;color:var(--green);font-weight:800;font-size:13px;letter-spacing:.4px}.orb{width:32px;height:32px;border-radius:11px;background:linear-gradient(135deg,#91a3ff,#6ce4bd);display:grid;place-items:center;color:#10131d;font-weight:900}
+h1{font-size:clamp(25px,6vw,38px);margin:16px 0 8px;letter-spacing:-.7px}.sub{color:var(--muted);line-height:1.8;margin:0;max-width:660px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}.stat{background:#0c111b;border:1px solid var(--line);border-radius:13px;padding:12px}.stat b{display:block;font-size:17px}.stat span{color:var(--muted);font-size:11px}
+.chat{margin-top:14px;border:1px solid var(--line);border-radius:20px;background:#111722;overflow:hidden}.bar{padding:14px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:8px}.dot{display:inline-block;width:8px;height:8px;background:var(--green);border-radius:50%;margin-left:7px}.status{color:var(--muted);font-size:12px}
+#log{padding:16px;min-height:240px;max-height:46vh;overflow:auto;display:flex;flex-direction:column;gap:12px}.msg{white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.85;border-radius:15px;padding:12px 14px;max-width:94%;font-size:14px}.user{align-self:flex-start;background:#26345a;border:1px solid #384b7b}.bot{align-self:flex-end;background:#19252a;border:1px solid #294b45}.tag{font-size:10px;color:var(--muted);margin-bottom:5px}
+.composer{padding:12px;border-top:1px solid var(--line);display:grid;gap:10px}.prompt{width:100%;resize:vertical;min-height:76px;max-height:180px;background:#0b1019;color:var(--text);border:1px solid #303b50;border-radius:13px;padding:13px;font:inherit;outline:none}.prompt:focus{border-color:var(--accent)}.actions{display:flex;gap:9px;flex-wrap:wrap}.btn{border:1px solid var(--line);background:#1c2433;color:var(--text);border-radius:12px;padding:11px 15px;font:inherit;font-weight:700;cursor:pointer}.primary{background:linear-gradient(135deg,#9aabff,#7ce4c1);color:#0a1220;border:0;flex:1}.btn:disabled{opacity:.5}.settings{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;flex-wrap:wrap}.settings input{accent-color:var(--accent)}.notice{margin-top:14px;padding:13px 15px;border:1px solid #4b4128;background:#201d16;color:#ddcfaa;border-radius:14px;font-size:12px;line-height:1.8}.foot{text-align:center;color:#69758d;font-size:11px;padding:16px}
+@media(min-width:650px){main{padding-top:34px}.hero{padding:28px}.composer{padding:16px}}
+</style></head>
+<body><main>
+<section class="hero"><div class="logo"><span class="orb">M</span> MINIAI / EXPERIMENT 001</div><h1>مدل زبانی کوچک، واقعی و قابل اجرا</h1><p class="sub">این پروژه یک شبکه عصبی بازگشتی کوچک است که از روی نمونه‌های متنی آموزش دیده و متن را نویسه‌به‌نویسه تولید می‌کند؛ پاسخ‌ها از فهرست ثابت انتخاب نمی‌شوند.</p>
+<div class="stats"><div class="stat"><b id="param">—</b><span>پارامترهای آموخته‌شده</span></div><div class="stat"><b id="size">—</b><span>حجم فایل وزن‌ها</span></div><div class="stat"><b>آفلاین</b><span>پس از باز شدن فایل‌ها</span></div></div></section>
+<section class="chat"><div class="bar"><div><span class="dot"></span><b>گفت‌وگو با MiniAI</b></div><span id="status" class="status">در حال بارگذاری وزن‌ها…</span></div><div id="log"><div class="msg bot"><div class="tag">MINIAI</div>سلام! من یک مدل زبانی بسیار کوچک هستم. یک جمله بنویس و متن تولیدشده‌ام را ببین. کیفیت من آزمایشی و محدود است.</div></div>
+<div class="composer"><textarea id="prompt" class="prompt" placeholder="پیام خود را بنویس… (Enter برای ارسال، Shift+Enter برای خط جدید)"></textarea><div class="settings"><label>طول خروجی <input id="length" type="range" min="40" max="240" value="120"></label><span id="lenval">۱۲۰ نویسه</span><label>تنوع <input id="temp" type="range" min="25" max="140" value="85"></label><span id="tempval">0.85</span></div><div class="actions"><button id="send" class="btn primary" disabled>تولید پاسخ ←</button><button id="clear" class="btn">پاک‌کردن گفت‌وگو</button></div></div></section>
+<div class="notice"><b>شفافیت:</b> وزن‌ها داخل فایل <code>model.json</code> قرار دارند و همین پروژه آن‌ها را از صفر با یک نمونه‌متن کوچک آموزش داده است. این یک LLM عمومی در سطح ChatGPT نیست؛ به‌دلیل سقف ۱۰ مگابایت، دانش و انسجام آن بسیار محدود است. برای اجرای آفلاین، فایل را از طریق یک میزبان محلی یا HTTPS باز کن؛ بعضی مرورگرها فایل‌های محلی را محدود می‌کنند.</div>
+<div class="foot">MiniAI · tiny character-level RNN · بدون API و بدون پاسخ‌های از پیش تعیین‌شده</div>
+</main>
+<script>
+let M=null, chars=[], W={}, H=0, V=0;
+const $=id=>document.getElementById(id);
+function mat(name){return W[name]}
+function dotRow(a,b,row,cols){let s=0,off=row*cols;for(let j=0;j<cols;j++)s+=a[j]*b[off+j];return s}
+function vecMat(vec, matrix, rows, cols, bias=null){let out=new Float32Array(cols);for(let j=0;j<cols;j++){let s=bias?bias[j]:0;for(let i=0;i<rows;i++)s+=vec[i]*matrix[j*rows+i];out[j]=s}return out}
+function addTanh(a,b){let o=new Float32Array(a.length);for(let i=0;i<a.length;i++)o[i]=Math.tanh(a[i]+b[i]);return o}
+function forward(token,h){
+ const emb=W['emb.weight'].slice(token*H,(token+1)*H);
+ const a=vecMat(emb,W['xh.weight'],H,H);
+ const b=vecMat(h,W['hh.weight'],H,H,W['hh.bias']);
+ h=addTanh(a,b);
+ const logits=vecMat(h,W['out.weight'],H,V,W['out.bias']);
+ return {logits,h};
+}
+function sample(logits,temp){
+ let max=-Infinity;for(let x of logits)if(x>max)max=x;
+ let probs=new Float64Array(logits.length),sum=0;
+ for(let i=0;i<logits.length;i++){probs[i]=Math.exp((logits[i]-max)/temp);sum+=probs[i]}
+ let r=Math.random()*sum;for(let i=0;i<probs.length;i++){r-=probs[i];if(r<=0)return i}return probs.length-1;
+}
+async function loadModel(){
+ try{let res=await fetch('./model.json');if(!res.ok)throw Error('model.json بارگذاری نشد');M=await res.json();chars=M.vocab;W={};for(let k in M.weights)W[k]=new Float32Array(M.weights[k].flat(Infinity));H=M.hidden;V=chars.length;
+ let count=0;for(let k in W)count+=W[k].length;
+ $('param').textContent=count.toLocaleString('fa-IR');$('size').textContent=(new Blob([JSON.stringify(M)]).size/1024).toFixed(0)+' KB';$('status').textContent='آماده تولید متن';$('send').disabled=false;
+ }catch(e){$('status').textContent='خطا در بارگذاری';addMessage('bot','بارگذاری مدل ناموفق بود. اگر فایل را مستقیم باز کرده‌ای، آن را از طریق یک میزبان محلی یا GitHub Pages اجرا کن. جزئیات: '+e.message)}
+}
+function addMessage(who,text){let d=document.createElement('div');d.className='msg '+who;let tag=document.createElement('div');tag.className='tag';tag.textContent=who==='user'?'شما':'MINIAI · تولیدشده توسط مدل';d.appendChild(tag);d.appendChild(document.createTextNode(text));$('log').appendChild(d);$('log').scrollTop=$('log').scrollHeight}
+function generate(seed,maxChars,temp){
+ let h=new Float32Array(H), token=chars.indexOf('\n');if(token<0)token=0;
+ // Feed a short rolling context so the output is conditioned on the user's message.
+ let context=seed.slice(-180);for(let c of context){let ix=chars.indexOf(c);if(ix>=0){let f=forward(ix,h);h=f.h;token=ix}}
+ let result='';for(let i=0;i<maxChars;i++){let f=forward(token,h);h=f.h;token=sample(f.logits,temp);result+=chars[token]}
+ return result.trim();
+}
+$('send').onclick=()=>{let p=$('prompt').value.trim();if(!p||!M)return;addMessage('user',p);$('prompt').value='';$('send').disabled=true;$('status').textContent='در حال تولید…';setTimeout(()=>{let answer=generate(p,Number($('length').value),Number($('temp').value)/100);addMessage('bot',answer||'');$('send').disabled=false;$('status').textContent='آماده تولید متن'},20)};
+$('prompt').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();$('send').click()}});
+$('clear').onclick=()=>{$('log').innerHTML='';addMessage('bot','گفت‌وگو پاک شد. هر متنی بنویس تا مدل یک دنباله تازه تولید کند.')};
+$('length').oninput=e=>$('lenval').textContent=Number(e.target.value).toLocaleString('fa-IR')+' نویسه';
+$('temp').oninput=e=>$('tempval').textContent=(Number(e.target.value)/100).toFixed(2);
+loadModel();
+</script></body></html>
